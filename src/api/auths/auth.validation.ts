@@ -1,6 +1,5 @@
 import * as joi from 'joi';
-import { join } from 'path';
-import { UserRole } from '../../commons/enum.common';
+import { AppObject } from '../../commons/app.object';
 
 export const loginValidation = joi.object({
   nameOrEmail: joi
@@ -41,7 +40,10 @@ export const regisValidation = joi.object({
     .messages({ 'string.email': `email must be valid email` })
     .required(),
 
-  role: joi.string().valid(UserRole.STUDENT, UserRole.TEACHER).required(),
+  role: joi
+    .string()
+    .valid(AppObject.ROLES.STUDENT, AppObject.ROLES.TEACHER)
+    .required(),
 
   displayName: joi
     .string()

@@ -1,12 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify your email</title>
+    <style>
+        .main-bg {
+            background-color: #120851;
+        }
+
+        .sec-bg {
+            background-color: #ff6600;
+            width: 200px !important;
+            margin: 0 auto;
+        }
+        .text-center{
+            text-align: center;
+        }
+        .w-50 {
+            width: 50% !important;
+        }
+        .text-white {
+            color: white !important;
+        }
+        .py-4 {
+            padding: 50px 0px;
+        }
+        .pt-5 {
+            padding-top: 80px;
+        }
+        .m-auto {
+            margin: auto;
+        }
+        .mt-5 {
+            margin-top: 80px !important;
+        }
+    </style>
 </head>
+
 <body>
-    {{email}}
-</body>
+    <div class="w-100 text-white main-bg">
+        <div class="text-center py-4"><strong>ONLINE JUDGE SYSTEM OJS</strong></div>
+    </div>
+    <div class="text-center pt-5">Hi, <strong>{{user}}</strong></div>
+    <div class="text-center w-50 m-auto">Thank you for using our service. We need to confirm that the email address
+        <strong>{{email}}</strong> is belong to you. Please use the verification code below to verify
+        your
+        email.</div>
+    <h6 class="text-center mt-4">Your code is</h6>
+    <div class="sec-bg text-center text-white p-2">
+        <h2 class="p-0 m-0">{{verifyCode}}</h2>
+    </div>
+    <div class="text-center"><small>This code will be expires after 5 minutes</small></div>
+    <div class="main-bg text-center text-white py-4 mt-5">
+        Thank and Best Regards,<br>
+        Dev.Khanh
+    </div>
+
 </html>

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { MongooseRepository } from '../../libs/databases/mongoose.repository';
 import UserModel from './user.collection';
 

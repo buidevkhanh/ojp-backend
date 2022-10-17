@@ -12,4 +12,10 @@ export const envConfigs: EnvironmentConfigs = {
     DATABASE_PASSWORD: process.env.MONGODB_DEFAULT_PASS + '',
     DATABASE_NAME: process.env.MONGODB_APP_DATABASE + '',
   },
+  EMAIL_CONFIG: {
+    VERIFY_EMAIL: `src/templates/verify-email.template.hbs`,
+  },
+  JWT_SECRET: process.env.JWT_SECRET + '',
+  ACCESS_TOKEN_EXPIRED: process.env.ACCESS_TOKEN_EXPIRED + '',
+  REFRESH_TOKEN_EXPIRED: process.env.REFERSH_TOKEN_EXPIRED + '',
 };

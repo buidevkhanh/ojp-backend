@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { UserRole, UserStatus } from '../../commons/enum.common';
+import { AppObject } from '../../commons/app.object';
 import { hashInformation } from '../../libs/utils/string.util';
 
 const UserModelSchema = new mongoose.Schema(
@@ -11,19 +11,23 @@ const UserModelSchema = new mongoose.Schema(
     dateOfBirdth: { type: Date, require: false },
     userRole: {
       type: String,
-      enum: Object.values(UserRole),
-      default: UserRole.STUDENT,
+      enum: Object.values(AppObject.ROLES),
+      default: AppObject.ROLES.STUDENT,
     },
     firstName: { type: String, require: false },
     lastName: { type: String, require: false },
     organization: { type: String, require: false },
     status: {
       type: String,
-      enum: Object.values(UserStatus),
-      default: UserStatus.NOT_VERFIVIED,
+      enum: Object.values(AppObject.ACCOUNT_STATUS),
+      default: AppObject.ACCOUNT_STATUS.NOT_VERIFIED,
     },
     lastLogin: { type: Date, require: false },
     lastLogout: { type: Date, require: false },
+    activateCode: {
+      token: { type: String, required: false },
+      expires: { type: Date, require: false },
+    },
   },
   { timestamps: true },
 );
@@ -33,7 +37,7 @@ UserModelSchema.pre('save', function () {
 });
 
 const UserModel: mongoose.Model<any, any, any, any, any> = mongoose.model(
-  'User',
+  AppObject.MONGO.COLLECTION.USERS,
   UserModelSchema,
 );
 

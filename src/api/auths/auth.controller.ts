@@ -4,7 +4,8 @@ import AuthService from './auth.service';
 async function userSignin(req: Request, res: Response, next: NextFunction) {
   try {
     const body = req.body;
-    await AuthService.authSignin(body);
+    const tokens = await AuthService.authSignin(body);
+    res.status(200).json(tokens);
   } catch (error) {
     next(error);
   }
