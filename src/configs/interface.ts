@@ -13,4 +13,7 @@ export interface EnvironmentConfigs {
   JWT_SECRET: string;
   ACCESS_TOKEN_EXPIRED: string;
   REFRESH_TOKEN_EXPIRED: string;
+  CLOUD_NAME: string;
+  CLOUD_API_KEY: string;
+  CLOUD_API_SECRET: string;
 }

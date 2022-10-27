@@ -1,5 +1,5 @@
 import { Application, urlencoded } from 'express';
-import path from 'path';
+import * as path from 'path';
 import * as glob from 'glob';
 import * as signale from 'signale';
 

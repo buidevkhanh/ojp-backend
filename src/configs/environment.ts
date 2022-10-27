@@ -18,4 +18,7 @@ export const envConfigs: EnvironmentConfigs = {
   JWT_SECRET: process.env.JWT_SECRET + '',
   ACCESS_TOKEN_EXPIRED: process.env.ACCESS_TOKEN_EXPIRED + '',
   REFRESH_TOKEN_EXPIRED: process.env.REFERSH_TOKEN_EXPIRED + '',
+  CLOUD_NAME: process.env.CLOUD_NAME + '',
+  CLOUD_API_KEY: process.env.CLOUD_API_KEY + '',
+  CLOUD_API_SECRET: process.env.CLOUD_API_SECRET + '',
 };

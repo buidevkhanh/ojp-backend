@@ -3,6 +3,9 @@ export const AppObject = {
     COLLECTION: {
       USERS: 'user',
       USER_TOKENS: 'usertoken',
+      PROBLEMS: 'problem',
+      CATEGORIES: 'category',
+      UPLOADS: 'upload',
     },
   },
   ROLES: {
@@ -18,5 +21,9 @@ export const AppObject = {
     NOT_VERIFIED: 'not_verified',
     VERIFIED: 'verified',
     BLOCKED: 'blocked',
+  },
+  PROBLEM_LEVEL: {
+    EASY: 'easy',
+    MEDIUM: 'medium',
   },
 };

@@ -14,4 +14,30 @@ export class MongooseRepository<TModel> {
   async createOne(document: TModel | any) {
     await this.TSchema.create(document);
   }
+
+  async getAllWithPaginate(params) {
+    const paginate = params.paginate;
+    let sortJson = '';
+    if (paginate.sort) {
+      sortJson = paginate.sort.split(',').join(`,"`);
+      sortJson = (sortJson || '').split(':').join(`":`);
+      sortJson = JSON.parse(`{"${sortJson}}`);
+    }
+    const list = await this.TSchema.find(params.conditions).sort(
+      sortJson || {},
+    );
+    return {
+      data: list.slice(
+        ((paginate.page || 1) - 1) * (paginate.pageSize || 15),
+        paginate.page * (paginate.pageSize || 15),
+      ),
+      page: +paginate.page || 1,
+      pageSize: +paginate.pageSize || 15,
+      totalItem: list.length,
+      totalPage:
+        paginate.pageSize == -1
+          ? 1
+          : Math.ceil(list.length / (paginate.pageSize || 15)),
+    };
+  }
 }

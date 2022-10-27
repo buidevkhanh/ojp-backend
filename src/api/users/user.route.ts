@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import userController from './user.controller';
-import validate from '../../libs/middlewares/validate.mdw';
+import { validate } from '../../libs/middlewares/validate.mdw';
 import { activeUser, resendCode } from './user.validation';
 
 const _router = express.Router();
@@ -10,7 +10,7 @@ _router.post('/users/active', [
   userController.activeUser,
 ]);
 
-_router.post('/user/resend-code', [
+_router.post('/users/resend-code', [
   validate(resendCode),
   userController.resendCode,
 ]);
