@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import upload from './multer.service';
-import validate from '../../libs/middlewares/validate.mdw';
+import { validate } from '../../libs/middlewares/validate.mdw';
 import uploadController from './upload.controller';
 
 const _router = express.Router();

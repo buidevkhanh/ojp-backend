@@ -11,8 +11,8 @@ const UploadModelSchema = new mongoose.Schema(
   },
 );
 
-const UploadModel: mongoose.Model<any, any, any, any, any> = new mongoose.Model(
-  AppObject.MONGO.COLLECTION.CATEGORIES,
+const UploadModel: mongoose.Model<any, any, any, any, any> = mongoose.model(
+  AppObject.MONGO.COLLECTION.UPLOADS,
   UploadModelSchema,
 );
 
