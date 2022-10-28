@@ -1,5 +1,6 @@
 import { exist, object } from 'joi';
 import * as mongoose from 'mongoose';
+import { AppObject } from '../../commons/app.object';
 import { AppError } from '../../libs/errors/app.error';
 import { CategoryRepository } from './category.repository';
 
@@ -59,9 +60,30 @@ async function getAllCategory(params) {
   return CategoryRepository.getAllWithPaginate(params);
 }
 
+async function detailById(id) {
+  const existCategory = await CategoryRepository.TSchema.findById(id);
+  if (!existCategory) {
+    throw new AppError('categoryNotFound', 400);
+  }
+  return existCategory;
+}
+
+async function changeStatus(id) {
+  const existCategory: any = await CategoryRepository.TSchema.findById(id);
+  if (!existCategory) {
+    throw new AppError('categoryNotFound', 400);
+  }
+  if (existCategory.status === AppObject.COMMON_STATUS.ACTIVE) {
+    existCategory.status = AppObject.COMMON_STATUS.INACTIVE;
+  } else existCategory.status = AppObject.COMMON_STATUS.ACTIVE;
+  return existCategory.save();
+}
+
 export default {
   createCategory,
   updateCategory,
   getAllCategory,
   deleteCategory,
+  detailById,
+  changeStatus,
 };

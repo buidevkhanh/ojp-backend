@@ -6,12 +6,12 @@ import { createCategory, updateCategory } from './category.validation';
 
 const _router = express.Router();
 
-_router.post('/category', [
+_router.post('/admin/category', [
   validate(createCategory),
   categoryController.createCategory,
 ]);
 
-_router.patch('/category', [
+_router.patch('/admin/category', [
   validate(updateCategory),
   categoryController.updateCategory,
 ]);
@@ -20,6 +20,18 @@ _router.delete('/admin/category/:id', [
   loginRequire,
   adminRole,
   categoryController.deleteCategory,
+]);
+
+_router.get('/admin/category/:id', [
+  loginRequire,
+  adminRole,
+  categoryController.categoryDetail,
+]);
+
+_router.patch('/admin/category/:id/status', [
+  loginRequire,
+  adminRole,
+  categoryController.switchStatus,
 ]);
 
 _router.get('/category', [categoryController.getAllActive]);

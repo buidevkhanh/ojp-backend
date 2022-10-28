@@ -36,8 +36,13 @@ async function getAllActive(req, res, next) {
 
 async function getAll(req, res, next) {
   try {
-    const { page, pageSize, sort } = req.query;
+    const { page, pageSize, sort, status } = req.query;
+    const conditions = {};
+    if (status) {
+      Object.assign(conditions, { status: { $eq: status } });
+    }
     const result = await categoryService.getAllCategory({
+      conditions,
       paginate: { page, pageSize, sort },
     });
     res.status(200).json(result);
@@ -56,10 +61,31 @@ async function deleteCategory(req, res, next) {
   }
 }
 
+async function categoryDetail(req, res, next) {
+  try {
+    const category = await categoryService.detailById(req.params.id);
+    res.status(200).json(category);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function switchStatus(req, res, next) {
+  try {
+    await categoryService.changeStatus(req.params.id);
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+}
+
 export default {
   createCategory,
   updateCategory,
   getAllActive,
   deleteCategory,
   getAll,
+  categoryDetail,
+  switchStatus,
 };

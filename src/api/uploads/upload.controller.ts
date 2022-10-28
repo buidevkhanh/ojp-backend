@@ -29,6 +29,7 @@ async function singleUpload(req, res, next) {
     await fs.unlinkSync(req.file.path);
     res.status(200).json(upload);
   } catch (error) {
+    console.log(error);
     next(new AppError('UploadFailure', 400));
   }
 }

@@ -27,10 +27,13 @@ export class MongooseRepository<TModel> {
       sortJson || {},
     );
     return {
-      data: list.slice(
-        ((paginate.page || 1) - 1) * (paginate.pageSize || 15),
-        paginate.page * (paginate.pageSize || 15),
-      ),
+      data:
+        paginate.pageSize == -1
+          ? list
+          : list.slice(
+              ((paginate.page || 1) - 1) * (paginate.pageSize || 15),
+              paginate.page * (paginate.pageSize || 15),
+            ),
       page: +paginate.page || 1,
       pageSize: +paginate.pageSize || 15,
       totalItem: list.length,
