@@ -63,6 +63,15 @@ async function updateProblem(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function getDetail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await problemService.getDetail(req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   createProblem,
   getAllProblem,
@@ -70,4 +79,5 @@ export default {
   deleteTestcase,
   updateTestcase,
   updateProblem,
+  getDetail,
 };

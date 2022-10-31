@@ -43,5 +43,11 @@ _router.patch('/admin/problem/:id', [
   problemController.updateProblem,
 ]);
 
+_router.get('/admin/problem/:id', [
+  loginRequire,
+  adminRole,
+  problemController.getDetail,
+]);
+
 export const name = 'problems';
 export default _router;

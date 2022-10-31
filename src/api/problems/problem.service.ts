@@ -115,6 +115,18 @@ async function updateProblem(problemId, problemInfo) {
   await existProblem.save();
 }
 
+async function getDetail(problemId) {
+  const existProblem = await ProblemRepository.TSchema.findById(
+    problemId,
+  ).populate({
+    path: 'problemCases',
+  });
+  if (!existProblem) {
+    throw new AppError(`ProblemNotFound`, 400);
+  }
+  return existProblem;
+}
+
 export default {
   createProblem,
   listByAdmin,
@@ -122,4 +134,5 @@ export default {
   deleteTestcase,
   updateTestcase,
   updateProblem,
+  getDetail,
 };
