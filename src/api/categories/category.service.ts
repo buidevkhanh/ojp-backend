@@ -2,6 +2,7 @@ import { exist, object } from 'joi';
 import * as mongoose from 'mongoose';
 import { AppObject } from '../../commons/app.object';
 import { AppError } from '../../libs/errors/app.error';
+import { ProblemRepository } from '../problems/problem.repository';
 import { CategoryRepository } from './category.repository';
 
 async function createCategory(categoryInfo: {
@@ -49,7 +50,12 @@ async function deleteCategory(categoryId) {
     throw new AppError('CategoryNotFound', 400);
   }
   //check in used category
-
+  const existProblems = await ProblemRepository.findOneByCondition({
+    problemCategory: new mongoose.Types.ObjectId(categoryId),
+  });
+  if (existProblems) {
+    throw new AppError('CanNotBeRemoveThisCategory', 400);
+  }
   // delete category
   await CategoryRepository.TSchema.deleteOne({
     _id: new mongoose.Types.ObjectId(categoryId),

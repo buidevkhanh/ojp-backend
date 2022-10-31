@@ -6,7 +6,14 @@ export const AppObject = {
       PROBLEMS: 'problem',
       CATEGORIES: 'category',
       UPLOADS: 'upload',
+      TESTCASES: 'testcase',
     },
+  },
+  PROBLEM_STATUS: {
+    ACTIVE: 'active',
+    INACTIVE: 'inactive',
+    PENDING: 'pending',
+    DECLINE: 'decline',
   },
   ROLES: {
     STUDENT: 'student',
@@ -25,5 +32,9 @@ export const AppObject = {
   PROBLEM_LEVEL: {
     EASY: 'easy',
     MEDIUM: 'medium',
+  },
+  APP_SCOPES: {
+    PUBLIC: 'public',
+    CLASS: 'class',
   },
 };

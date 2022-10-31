@@ -15,6 +15,10 @@ export class MongooseRepository<TModel> {
     await this.TSchema.create(document);
   }
 
+  async createWithReturn(document: TModel | any) {
+    return this.TSchema.create(document);
+  }
+
   async getAllWithPaginate(params) {
     const paginate = params.paginate;
     let sortJson = '';
