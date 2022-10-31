@@ -6,6 +6,9 @@ import { TestcaseRepository } from './testcases/testcase.repository';
 import TestcaseModel from './testcases/testcase.collection';
 import { AppObject } from '../../commons/app.object';
 import { exist } from 'joi';
+import mongoose, { mongo } from 'mongoose';
+import { isAwaitExpression } from 'typescript';
+import ProblemModel from './problem.collection';
 
 async function createProblem(problemInfo) {
   const existCategory = await CategoryRepository.TSchema.findById(
@@ -54,10 +57,69 @@ async function changeProblem(problemId) {
   } else {
     existProblem.status = AppObject.PROBLEM_STATUS.ACTIVE;
   }
+  await existProblem.save();
+}
+
+async function deleteTestcase(testcaseIds: string[]) {
+  const session = await TestcaseModel.startSession();
+  session.startTransaction();
+  try {
+    await TestcaseRepository.TSchema.deleteMany({
+      _id: { $in: testcaseIds },
+    });
+    const existProblems: any = await ProblemRepository.TSchema.find({
+      problemCases: { $in: testcaseIds },
+    });
+    console.log(existProblems);
+    for (let i = 0; i < existProblems.length; i++) {
+      existProblems[i].problemCases = existProblems[i].problemCases.filter(
+        (item) => {
+          return !testcaseIds.includes(item._id.toString());
+        },
+      );
+      await existProblems[i].save();
+    }
+    session.commitTransaction();
+  } catch {
+    session.abortTransaction();
+  } finally {
+    session.endSession();
+  }
+}
+
+async function updateTestcase(
+  testcaseId,
+  testcaseInfo: { input: string; output: string },
+) {
+  const existTestcase: any = await TestcaseRepository.TSchema.findById(
+    testcaseId,
+  );
+  if (!existTestcase) {
+    throw new AppError(`TestcaseNotFound`, 400);
+  }
+  if (testcaseInfo.input) existTestcase.input = testcaseInfo.input;
+  if (testcaseInfo.output) existTestcase.output = testcaseInfo.output;
+  await existTestcase.save();
+}
+
+async function updateProblem(problemId, problemInfo) {
+  const existProblem = await ProblemRepository.TSchema.findById(problemId);
+  if (!existProblem) {
+    throw new AppError(`ProblemNotFound`, 400);
+  }
+  for (const key in problemInfo) {
+    if (Object.keys(existProblem.toObject()).includes(key)) {
+      existProblem[key] = problemInfo[key];
+    }
+  }
+  await existProblem.save();
 }
 
 export default {
   createProblem,
   listByAdmin,
   changeProblem,
+  deleteTestcase,
+  updateTestcase,
+  updateProblem,
 };

@@ -19,12 +19,28 @@ _router.get('/admin/problem', [
   problemController.getAllProblem,
 ]);
 
-_router.patch('/admin/problem/testcase/:id', []);
-
 _router.patch('/admin/problem/:id/status', [
   loginRequire,
   adminRole,
   problemController.changeProblem,
+]);
+
+_router.delete('/admin/problem/testcase', [
+  loginRequire,
+  adminRole,
+  problemController.deleteTestcase,
+]);
+
+_router.patch('/admin/problem/testcase/:id', [
+  loginRequire,
+  adminRole,
+  problemController.updateTestcase,
+]);
+
+_router.patch('/admin/problem/:id', [
+  loginRequire,
+  adminRole,
+  problemController.updateProblem,
 ]);
 
 export const name = 'problems';

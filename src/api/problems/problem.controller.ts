@@ -36,8 +36,38 @@ async function changeProblem(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function deleteTestcase(req: Request, res: Response, next: NextFunction) {
+  try {
+    await problemService.deleteTestcase(req.body.testcaseIds);
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateTestcase(req: Request, res: Response, next: NextFunction) {
+  try {
+    await problemService.updateTestcase(req.params.id, req.body);
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateProblem(req: Request, res: Response, next: NextFunction) {
+  try {
+    await problemService.updateProblem(req.params.id, req.body);
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   createProblem,
   getAllProblem,
   changeProblem,
+  deleteTestcase,
+  updateTestcase,
+  updateProblem,
 };
