@@ -45,6 +45,16 @@ async function deleteTestcase(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function addTestcase(req: Request, res: Response, next: NextFunction) {
+  try {
+    await problemService.addTestcase(req.params.id, req.body.testcases);
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+}
+
 async function updateTestcase(req: Request, res: Response, next: NextFunction) {
   try {
     await problemService.updateTestcase(req.params.id, req.body);
@@ -59,6 +69,7 @@ async function updateProblem(req: Request, res: Response, next: NextFunction) {
     await problemService.updateProblem(req.params.id, req.body);
     res.status(200).json({ ok: true });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 }
@@ -79,5 +90,6 @@ export default {
   deleteTestcase,
   updateTestcase,
   updateProblem,
+  addTestcase,
   getDetail,
 };

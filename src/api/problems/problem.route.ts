@@ -49,5 +49,11 @@ _router.get('/admin/problem/:id', [
   problemController.getDetail,
 ]);
 
+_router.post('/admin/problem/testcase/:id', [
+  loginRequire,
+  adminRole,
+  problemController.addTestcase,
+]);
+
 export const name = 'problems';
 export default _router;

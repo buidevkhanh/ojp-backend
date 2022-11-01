@@ -127,6 +127,25 @@ async function getDetail(problemId) {
   return existProblem;
 }
 
+async function addTestcase(problemId, testcaseInfo) {
+  const existProblem: any = await ProblemRepository.TSchema.findById(problemId);
+  if (!existProblem) {
+    throw new AppError(`ProblemNotFound`, 400);
+  }
+  const testcaseIds = await Promise.all(
+    testcaseInfo.map((item) => {
+      return TestcaseRepository.TSchema.create({
+        input: item.input,
+        output: item.output,
+      });
+    }),
+  );
+  testcaseIds.forEach((item) => {
+    existProblem.problemCases.push(item._id.toString());
+  });
+  await existProblem.save();
+}
+
 export default {
   createProblem,
   listByAdmin,
@@ -135,4 +154,5 @@ export default {
   updateTestcase,
   updateProblem,
   getDetail,
+  addTestcase,
 };
