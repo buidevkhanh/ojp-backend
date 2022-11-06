@@ -55,5 +55,9 @@ _router.post('/admin/problem/testcase/:id', [
   problemController.addTestcase,
 ]);
 
+_router.get('/problem', [problemController.getActiveProblem]);
+
+_router.get('/problem/detail', [problemController.getProblemDetail]);
+
 export const name = 'problems';
 export default _router;

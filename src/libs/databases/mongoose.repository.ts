@@ -27,9 +27,9 @@ export class MongooseRepository<TModel> {
       sortJson = (sortJson || '').split(':').join(`":`);
       sortJson = JSON.parse(`{"${sortJson}}`);
     }
-    const list = await this.TSchema.find(params.conditions).sort(
-      sortJson || {},
-    );
+    const list = await this.TSchema.find(params.conditions)
+      .populate(params.populate)
+      .sort(sortJson || {});
     return {
       data:
         paginate.pageSize == -1

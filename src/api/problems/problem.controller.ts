@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
+import { AppObject } from '../../commons/app.object';
 import problemService from './problem.service';
 
 async function createProblem(req: Request, res: Response, next: NextFunction) {
@@ -83,6 +85,64 @@ async function getDetail(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function getActiveProblem(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { page, pageSize, sort, inClass, category, level, name, code } =
+      req.query;
+    const conditions = {
+      status: { $eq: AppObject.PROBLEM_STATUS.ACTIVE },
+      problemScope: AppObject.APP_SCOPES.PUBLIC,
+    };
+    if (inClass) {
+      Object.assign(conditions, { problemScope: AppObject.APP_SCOPES.CLASS });
+    }
+    if (category) {
+      Object.assign(conditions, {
+        problemCategory: new mongoose.Types.ObjectId(category as string),
+      });
+    }
+    if (level) {
+      Object.assign(conditions, {
+        problemLevel: level,
+      });
+    }
+    if (name) {
+      Object.assign(conditions, {
+        problemName: { $regex: name, $options: 'i' },
+      });
+    }
+    if (code) {
+      Object.assign(conditions, {
+        problemCode: code,
+      });
+    }
+    const result = await problemService.getActiveProblem({
+      conditions,
+      paginate: { page, pageSize, sort },
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getProblemDetail(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await problemService.userGetDetail(req.query.code);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   createProblem,
   getAllProblem,
@@ -92,4 +152,6 @@ export default {
   updateProblem,
   addTestcase,
   getDetail,
+  getActiveProblem,
+  getProblemDetail,
 };

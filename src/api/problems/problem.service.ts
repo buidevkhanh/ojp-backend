@@ -146,6 +146,30 @@ async function addTestcase(problemId, testcaseInfo) {
   await existProblem.save();
 }
 
+async function getActiveProblem(params) {
+  Object.assign(params, {
+    populate: {
+      path: 'problemCategory',
+      model: AppObject.MONGO.COLLECTION.CATEGORIES,
+    },
+  });
+  return ProblemRepository.getAllWithPaginate(params);
+}
+
+async function userGetDetail(code) {
+  const result: any = await ProblemRepository.TSchema.findOne({
+    status: AppObject.PROBLEM_STATUS.ACTIVE,
+    problemCode: code,
+  }).populate([{ path: 'problemCategory' }, { path: 'problemCases' }]);
+
+  if (!result) {
+    throw new AppError(`problemNotFound`, 400);
+  }
+  const example = result.problemCases[0];
+  delete result.problemCases;
+  return Object.assign(result.toObject(), { example });
+}
+
 export default {
   createProblem,
   listByAdmin,
@@ -155,4 +179,6 @@ export default {
   updateProblem,
   getDetail,
   addTestcase,
+  getActiveProblem,
+  userGetDetail,
 };
