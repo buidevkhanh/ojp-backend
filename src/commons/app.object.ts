@@ -37,4 +37,15 @@ export const AppObject = {
     PUBLIC: 'public',
     CLASS: 'class',
   },
+  SOCKET: {
+    ACTIONS: {
+      ACTION_SUBMIT_PROBLEM: 'submit_problem',
+      ACTION_RUNCODE: 'runcode',
+    },
+    RESPONSE: {
+      RESPONSE_RUNCODE: 'response_runcode',
+      OUTPUT_RUNCODE: 'ouput_runcode',
+      OUTPUT_RUNCODE_TIME: 'output_runcode_time'
+    }
+  }
 };

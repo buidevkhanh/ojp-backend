@@ -1,12 +1,13 @@
-import { Application, urlencoded } from 'express';
+import { Application } from 'express';
 import * as path from 'path';
-import * as glob from 'glob';
+import glob from 'glob';
 import * as signale from 'signale';
 
 export default function (app: Application) {
   const routePaths = glob.sync(
-    path.normalize(`${__dirname}/../api/**/*.route.{ts,js}`),
+    path.join(process.cwd(), `src/api/**/*.route.ts`),
   );
+
   /**
    * router configuration
    */
@@ -20,5 +21,5 @@ export default function (app: Application) {
     return childRoute;
   });
 
-  app.use('/api/v1', routes);
+  app.use('/api/v1', routes)
 }
