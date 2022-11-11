@@ -24,7 +24,18 @@ async function resendCode(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function getUserInfor(req: Request, res: Response, next: NextFunction) {
+  try {
+    const payload = (req as any).payload;
+    const user = await userSerivce.getUserInfor(payload.nameOrEmail);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   activeUser,
   resendCode,
+  getUserInfor
 };

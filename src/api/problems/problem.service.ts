@@ -166,8 +166,7 @@ async function userGetDetail(code) {
     throw new AppError(`problemNotFound`, 400);
   }
   const example = result.problemCases[0];
-  delete result.problemCases;
-  return Object.assign(result.toObject(), { example });
+  return Object.assign(result.toObject(), { example, problemCases: 'Not public'});
 }
 
 export default {

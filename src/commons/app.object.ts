@@ -47,5 +47,8 @@ export const AppObject = {
       OUTPUT_RUNCODE: 'ouput_runcode',
       OUTPUT_RUNCODE_TIME: 'output_runcode_time'
     }
+  },
+  DEFAULT_AVATAR: {
+    URL: 'https://res.cloudinary.com/de6k85koo/image/upload/v1668132408/20889797_1_ic6el0.jpg'
   }
 };

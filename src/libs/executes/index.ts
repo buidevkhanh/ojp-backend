@@ -3,9 +3,9 @@ import fs  from 'fs';
 import pidusage from 'pidusage';
 import path from 'path';
 import { AppObject } from '../../commons/app.object';
+import { off } from 'process';
 
 export async function executeFile(client: any, folder: any, filename: any, language: any, input: any, className?: string) {
-    const traceFile = require('uuid').v1() + ".log";
     switch(language) {
         case 'cpp': {
             const compiledPath = `${folder}\\${filename.split(".")[0]}.exe`;
@@ -17,6 +17,7 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                 client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: false,  output: null, error: errorStr, memory: 0, time: 0});
             })
             compiler.on('close', (code) => {
+                compiler.kill;
                 if(code === 0) {
                     client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: true,  output: null, error: null});
                     const runner = pc.spawn(compiledPath, {detached: true, timeout: 20000});
@@ -30,9 +31,8 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                         runner.stdin.end();
                     }
 
-                    pidusage(process.pid, (err, stats) => {
-                        const content = `${stats.ctime}`;
-                        require('fast-write-atomic')(path.join(path.join(__dirname, "traces"), traceFile), Buffer.from(content), ()=>{})
+                    runner.on('beforeExit', (data) => {
+                        console.log(runner.killed);
                     })
 
                     runner.stdout.on(`data`, async (data) => {
@@ -43,15 +43,15 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                         client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true,  output: executeTime <= 2000 ? `${dataStr}` : null, error:executeTime <= 2000? null : `Time limited exceeded`, time: executeTime, memory: 0});
                     });
 
-                    runner.on('close', async (code) => {
-                        if(code !== 0) {
+                    runner.on('close', async (code, signal) => {
+                        if(signal === `SIGTERM`) {
+                            client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true, output: null, error: `Time limited execeeded`, time: 2, memory: 0});
+                        }
+                        else if(code !== 0) {
                             client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true, output: null, error: `Runtime error`, time: 0, memory: 0});
                         } 
+                        console.log(code, signal);
                         //client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE_TIME, stats)
-                        pidusage(process.pid, (err, stats) => {
-                            const content = `${stats.ctime}`;
-                            require('fast-write-atomic')(path.join(path.join(__dirname, "traces"), traceFile), Buffer.from(content), ()=>{})
-                        })
                         fs.unlinkSync(path.join(folder, filename));
                         fs.unlinkSync(compiledPath);
                     })
@@ -74,8 +74,12 @@ export async function executeFile(client: any, folder: any, filename: any, langu
             if(!`${compiler.stderr}`) {
                     const runargs = [`${filename.replace(".java", "")}`];
                     client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: true,  output: null, error: null});
-                    const runner = pc.spawn("java", runargs, {detached: true, timeout: 20000, cwd: path.normalize(folder)});
+                    const runner = pc.spawn("java", runargs, {shell: true, detached: true, timeout: 20000, cwd: path.normalize(folder)});
                     runner.unref();
+                    console.log(runner.pid);
+                    require('pidtree')(process.pid, (err, pids) => {
+                        console.log({err, pids});
+                    })
 
                     const beginExecute = new Date();
 
@@ -88,21 +92,24 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                         let dataStr: string = `${data}`;
                         const endExecute = new Date();
                         const executeTime = (Number(endExecute) - Number(beginExecute)) / 10;
-                        const pcInfo = pc.spawnSync('tasklist', ['/fi', `PID eq ${runner.pid}`]);
-                        console.log(`${pcInfo.stdout}`);
                         dataStr = dataStr.replaceAll(path.join(folder, filename) + ":", "");
-                        client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true,  output: executeTime <= 2000 ? `${dataStr}` : null, error:executeTime <= 2000? null : `Executing too long`, time: executeTime, memory: 0});
-                    })
+                        client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true,  output: executeTime <= 2000 ? `${dataStr}` : null, error:executeTime <= 2000? null : `Time limited execeeded`, time: executeTime, memory: 0});
+                    });
 
-                    runner.stderr.on('data', (data) => {
-                        console.log(`${data}`);
-                    })
-
-                    runner.on('close', () => {
+                    runner.on('close', (code, signal) => {
                         //client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE_TIME, stats)
-                        console.log('process close');
-                        runner.kill();
-                        //fs.unlinkSync(path.join(folder, filename));
+                        if(code === 143) {
+                            client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true, output: null, error: `Time limited execeeded`, time: 2, memory: 0});
+                        }
+                        else if(code !== 0) {
+                            client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true, output: null, error: `Runtime error`, time: 0, memory: 0});
+                        } ;
+                        try {
+                            fs.unlinkSync(path.join(folder, filename));
+                            fs.unlinkSync(path.join(folder, filename.replace(".java",".class")));
+                        } catch (error) {
+                            require('signale').error('Unlink error, please check');
+                        }
                     })
 
                     // Monitor process
@@ -112,7 +119,11 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                 let errorStr: string = `${compiler.stderr}`;
                 errorStr = errorStr.replaceAll(path.join(folder, filename) + ":", "");
                 client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: false,  output: null, error: errorStr, memory: 0, time: 0});
-                //fs.unlinkSync(path.join(folder, filename));
+                try {
+                    fs.unlinkSync(path.join(folder, filename));
+                } catch (error) {
+                    require('signale').error('Unlink error, please check');
+                }
             }
         }
     }

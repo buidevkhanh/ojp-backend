@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start:dev": "nodemon --watch 'src/**' --ext 'ts,json' --exec ts-node app"
+    "start:dev": "nodemon --watch 'src/**' --ext 'ts,json' --exec 'ts-node app'"
   },
   "license": "MIT",
   "dependencies": {
     "@11ways/process-monitor": "^0.3.1",
     "@types/express": "^4.17.14",
-    "@types/node": "^18.7.23",
+    "@types/node": "^18.11.9",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.0",
     "cloudinary": "^1.32.0",

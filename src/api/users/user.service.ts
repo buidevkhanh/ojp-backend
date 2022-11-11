@@ -17,6 +17,28 @@ async function verifyAccount(params: {
   });
 }
 
+async function getUserInfor(nameOrEmail: string) {
+  const existUser: any = await UserRepository.TSchema.findOne({ $or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+  if(!existUser) {
+    throw new AppError(`UserNotExist`, 400);
+  }
+  if(existUser.status !== AppObject.ACCOUNT_STATUS.VERIFIED) {
+    throw new AppError(`UserIs${existUser.status}`, 400);
+  } 
+  return   {
+  username: existUser.username,
+  userEmail: existUser.userEmail,
+  displayName: existUser.displayName,
+  dateOfBirdth: existUser.dateOfBirdth || null,
+  firstName: existUser.firstName || null,
+  lastName: existUser.lastName || null,
+  organization: existUser.organization || null,
+  avatar: existUser.avatar || AppObject.DEFAULT_AVATAR.URL,
+  createdAt: existUser.createdAt,
+  updatedAt: existUser.updatedAt
+}
+}
+
 async function checkUserIsExist(params: {
   username?: string;
   email?: string;
@@ -114,4 +136,5 @@ export default {
   findUser,
   activeUser,
   resendCode,
+  getUserInfor
 };

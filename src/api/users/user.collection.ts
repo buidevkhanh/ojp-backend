@@ -22,6 +22,10 @@ const UserModelSchema = new mongoose.Schema(
       enum: Object.values(AppObject.ACCOUNT_STATUS),
       default: AppObject.ACCOUNT_STATUS.NOT_VERIFIED,
     },
+    avatar: {
+      type: String,
+      default: AppObject.DEFAULT_AVATAR.URL
+    },
     lastLogin: { type: Date, require: false },
     lastLogout: { type: Date, require: false },
     activateCode: {
