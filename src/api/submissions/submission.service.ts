@@ -65,9 +65,14 @@ async function detail(submissionId, user) {
     return returnSubmit;
 }
 
+async function removeSubmit(id) {
+    await SubmissionRepository.TSchema.deleteOne({_id: new mongoose.Types.ObjectId(id)});
+}
+
 export default {
     createSubmission,
     updateSubmission,
     listAll,
-    detail
+    detail,
+    removeSubmit
 }

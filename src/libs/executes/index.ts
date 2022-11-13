@@ -15,13 +15,10 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                 client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: false,  output: null, error: errorStr, memory: 0, time: 0});
             })
             compiler.on('close', (code) => {
-                compiler.kill;
                 if(code === 0) {
                     client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: true,  output: null, error: null});
-                    const runner = pc.spawn(compiledPath, {detached: true, timeout: 20000});
-                    runner.unref();
-
-                    if(input) {
+                    const runner = pc.spawn(compiledPath, {shell: true, windowsHide: true, timeout: 20000});
+                    if(input.trim()) {
                         runner.stdin.write(input);
                         runner.stdin.end();
                     }
@@ -46,17 +43,15 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                             client.emit(AppObject.SOCKET.RESPONSE.OUTPUT_RUNCODE, {isCompile: true, output: null, error: `Runtime error`, time: 0, memory: 0});
                         } 
                         try {
-                        fs.unlinkSync(path.join(folder, filename));
-                        fs.unlinkSync(compiledPath);
+                            fs.unlinkSync(path.join(folder, filename));
+                            fs.unlinkSync(compiledPath);
                         } catch {}
                     })                    
 
                 } else {
                     try {
                     fs.unlinkSync(path.join(folder, filename));
-                    fs.renameSync(compiledPath, compiledPath.replace(".exe",".txt"));
-                    fs.existsSync(compiledPath);
-                    fs.unlinkSync(compiledPath.replace(".exe",".txt"));
+                    fs.unlinkSync(compiledPath);
                     } catch {}
                 }
             });
