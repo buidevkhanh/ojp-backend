@@ -6,7 +6,7 @@ import { AppObject } from '../../commons/app.object';
 export async function executeFile(client: any, folder: any, filename: any, language: any, input: any, className?: string) {
     switch(language) {
         case 'cpp': {
-            const compiledPath = `${folder}\\${filename.split(".")[0]}.exe`;
+            const compiledPath = path.join(folder,`${filename.split(".")[0]}.exe`);
             const args = ['-o', `${compiledPath}`, `${path.join(folder, filename)}`];
             const compiler = pc.spawn("g++", args);
             compiler.stderr.on(`data`, (data) => {
@@ -15,7 +15,6 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                 client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: false,  output: null, error: errorStr, memory: 0, time: 0});
             })
             compiler.on('close', (code) => {
-                console.log('compiled success');
                 compiler.kill;
                 if(code === 0) {
                     client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: true,  output: null, error: null});
@@ -26,10 +25,6 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                         runner.stdin.write(input);
                         runner.stdin.end();
                     }
-
-                    runner.on('beforeExit', (data) => {
-                        console.log(runner.killed);
-                    })
 
                     runner.stdout.on(`data`, async (data) => {
                         let dataStr: string = `${data}`;
@@ -77,10 +72,6 @@ export async function executeFile(client: any, folder: any, filename: any, langu
                     client.emit(AppObject.SOCKET.RESPONSE.RESPONSE_RUNCODE, {isCompile: true,  output: null, error: null});
                     const runner = pc.spawn("java", runargs, {shell: true, detached: true, timeout: 20000, cwd: path.normalize(folder)});
                     runner.unref();
-
-                    require('pidtree')(process.pid, (err, pids) => {
-                        console.log({err, pids});
-                    })
 
                     const beginExecute = new Date();
 
@@ -131,23 +122,31 @@ export async function executeFile(client: any, folder: any, filename: any, langu
 export async function compile(folder: any, filename: any, language: any): Promise<any> {
     switch(language) {
         case 'cpp': {
-            const compiledPath = path.join(folder, `${filename.split(".")[0]}.exe`);
-            const args = ['-o', `${compiledPath}`, `${path.join(folder, filename)}`];
-            const compiler = await pc.spawnSync("g++", args, {shell: true, windowsHide: true});
-            
-            if(`${compiler.stderr}`) {
-                let errorStr: string = `${compiler.stderr}`;
-                errorStr = errorStr.replaceAll(path.join(folder, filename) + ":", "");
-                return {
-                    status: AppObject.SUBMISSION_STATUS.CE,
-                    detail: errorStr
-                }
-            } 
+            return new Promise((resolve, reject) => {
+                const compiledPath = path.join(folder, `${filename.split(".")[0]}.exe`);
+                const args = ['-o', `${compiledPath}`, `${path.join(folder, filename)}`];
+                const compiler =  pc.spawn("g++", args, {shell: true, windowsHide: true});
+                
+                compiler.stderr.on('data', (data) => {
+                    let errorStr: string = `${data}`;
+                    errorStr = errorStr.replaceAll(path.join(folder, filename) + ":", "");
+                    resolve({
+                        status: AppObject.SUBMISSION_STATUS.CE,
+                        detail: errorStr
+                    });
+                });
 
-            return {
-                status: null,
-                detail: compiledPath
-            }
+                compiler.on('close', code => {
+                    if(code == 0) {
+                        resolve(
+                            {
+                                status: null,
+                                detail: compiledPath
+                            }
+                        )
+                    }
+                })
+            })
         }
         case 'java': {
             const args = [`${path.join(folder, filename)}`];

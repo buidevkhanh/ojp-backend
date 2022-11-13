@@ -29,6 +29,7 @@ export class MongooseRepository<TModel> {
     }
     const list = await this.TSchema.find(params.conditions)
       .populate(params.populate)
+      .select(params.projections || {})
       .sort(sortJson || {});
     return {
       data:

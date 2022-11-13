@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { adminRole, loginRequire } from '../../libs/middlewares/validate.mdw';
+import { adminRole, bypassLogin, loginRequire } from '../../libs/middlewares/validate.mdw';
 import { validate } from '../../libs/middlewares/validate.mdw';
 import problemController from './problem.controller';
 import { createProblem } from './problem.validation';
@@ -55,7 +55,7 @@ _router.post('/admin/problem/testcase/:id', [
   problemController.addTestcase,
 ]);
 
-_router.get('/problem', [problemController.getActiveProblem]);
+_router.get('/problem', [bypassLogin, problemController.getActiveProblem]);
 
 _router.get('/problem/detail', [problemController.getProblemDetail]);
 

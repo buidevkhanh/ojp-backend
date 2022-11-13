@@ -24,16 +24,14 @@ export default function initialSocket(app: Application) {
         client.on(AppObject.SOCKET.ACTIONS.ACTION_SUBMIT_PROBLEM, async (data) => {
             const uuid = require('uuid').v1();
             let tempFilename = uuid;
-            let maxExecuteTime = 0;
-            let maxMemory = 0;
             let passPercent: any = 0;
             let totalPass = 0;
-            let compiled;
             let submitResult: { status: any, code: string, detail: any, time: any, memory: any} = { status: null, code: data.code, detail: null, time: 0, memory: 0};
             const submisson = await submissionService.createSubmission({
                 token: data.token, 
                 problem: data.problem._id, 
                 userCode: submitResult.code, 
+                language: data.language
             })
             switch(data.language) {
                 case 'java': {
@@ -74,7 +72,6 @@ export default function initialSocket(app: Application) {
                             handleRunntest.push(submit(data.language, compiled.detail , testcase[i].input, tempFilename, tempFolder));
                         }
                         Promise.all(handleRunntest).then((runResult) => {
-                            console.log(runResult);
                             let maxExecuteTime = 0;
                             let maxMemory = 0;
                             for(let i = 0, length = runResult.length; i < length; i++) {

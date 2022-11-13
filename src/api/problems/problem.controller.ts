@@ -123,9 +123,10 @@ async function getActiveProblem(
     const result = await problemService.getActiveProblem({
       conditions,
       paginate: { page, pageSize, sort },
-    });
+    }, (req as any).payload?.nameOrEmail);
     res.status(200).json(result);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 }

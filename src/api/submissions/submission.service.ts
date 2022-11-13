@@ -3,6 +3,7 @@ import userService from "../users/user.service";
 import { SubmissionRepository } from "./submission.repository"
 import  jwtService  from '../../commons/jwt';
 import mongoose from "mongoose";
+import { UserRepository } from "../users/user.repository";
 
 async function createSubmission(submissionInfo) {
     if(!submissionInfo.token) {
@@ -38,7 +39,7 @@ async function listAll(paginate, author) {
         conditions: {},
         populate: [{
             path: 'problem',
-            select: 'problemName'
+            select: ['problemName','problemCode']
         },{
             path: 'user',
             select: 'displayName'
@@ -51,8 +52,22 @@ async function listAll(paginate, author) {
     return SubmissionRepository.getAllWithPaginate(params);
 }
 
+async function detail(submissionId, user) {
+    const existUser = await userService.findUser({$or: [{username: user},{userEmail: user}]});
+    const existSubmit = await SubmissionRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(submissionId), user: existUser._id});
+    if(!existSubmit) {
+        throw new AppError(`PermissionDenied`, 400);
+    }
+    const returnSubmit = existSubmit.toObject();
+    if(!returnSubmit.language) {
+        returnSubmit.language = 'cpp';
+    }
+    return returnSubmit;
+}
+
 export default {
     createSubmission,
     updateSubmission,
-    listAll
+    listAll,
+    detail
 }

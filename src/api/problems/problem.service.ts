@@ -7,8 +7,12 @@ import TestcaseModel from './testcases/testcase.collection';
 import { AppObject } from '../../commons/app.object';
 import { exist } from 'joi';
 import mongoose, { mongo } from 'mongoose';
-import { isAwaitExpression } from 'typescript';
+import { isAwaitExpression, ListFormat } from 'typescript';
 import ProblemModel from './problem.collection';
+import { prependOnceListener } from 'process';
+import { UserRepository } from '../users/user.repository';
+import userService from '../users/user.service';
+import { SubmissionRepository } from '../submissions/submission.repository';
 
 async function createProblem(problemInfo) {
   const existCategory = await CategoryRepository.TSchema.findById(
@@ -146,14 +150,35 @@ async function addTestcase(problemId, testcaseInfo) {
   await existProblem.save();
 }
 
-async function getActiveProblem(params) {
+async function getActiveProblem(params, user?) {
   Object.assign(params, {
     populate: {
       path: 'problemCategory',
       model: AppObject.MONGO.COLLECTION.CATEGORIES,
     },
+    projections: {
+      "problemName": 1,
+      "problemCode": 1,
+      "problemLevel": 1
+    }
   });
-  return ProblemRepository.getAllWithPaginate(params);
+  const problems = await ProblemRepository.getAllWithPaginate(params);
+  if(user) {
+    const newList: any = [];
+    const existUser = await userService.findUser({$or: [{username: user},{userEmail: user}]});
+    const userId = existUser._id;
+    for(let i = 0; i < problems.data.length; i++) {
+      const item = problems.data[i];
+      const isDone = await SubmissionRepository.findOneByCondition({problem: item._id, user: userId, status: AppObject.SUBMISSION_STATUS.AC});
+      if(isDone) {
+        newList.push(Object.assign(problems.data[i].toObject(), { isDone: true}));
+      } else {
+        newList.push(Object.assign(problems.data[i].toObject(), { isDone: false}));
+      }
+    };
+    problems.data = newList;
+  }
+  return problems;
 }
 
 async function userGetDetail(code) {

@@ -6,5 +6,7 @@ const _router = express.Router();
 
 _router.get('/submission', [bypassLogin, submissionController.getSubmission]);
 
+_router.get('/submission/:id', [bypassLogin, submissionController.detail])
+
 export const name = 'submissions';
 export default _router;
