@@ -15,6 +15,28 @@ export function validate(validationSchema) {
   };
 }
 
+export function bypassLogin(req, res, next) {
+  try {
+    const authToken = req.get('Authorization').split('Bearer ');
+    if (authToken.length === 1) {
+       req.payload = null;
+    } else if (authToken.length === 2) {
+      const token = authToken[1];
+      try {
+        const payload = jwt.verifyToken(token);
+        req.payload = payload;
+      } catch (error) {
+        req.payload = null;
+      }
+    } else {
+      req.payload = null;
+    }
+  } catch (error) {
+    req.payload = null;
+  }
+  next();
+}
+
 export function loginRequire(req, res, next) {
   try {
     const authToken = req.get('Authorization').split('Bearer ');

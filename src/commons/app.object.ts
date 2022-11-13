@@ -7,6 +7,7 @@ export const AppObject = {
       CATEGORIES: 'category',
       UPLOADS: 'upload',
       TESTCASES: 'testcase',
+      SUBMISSIONS: 'submission'
     },
   },
   PROBLEM_STATUS: {
@@ -45,10 +46,19 @@ export const AppObject = {
     RESPONSE: {
       RESPONSE_RUNCODE: 'response_runcode',
       OUTPUT_RUNCODE: 'ouput_runcode',
-      OUTPUT_RUNCODE_TIME: 'output_runcode_time'
+      OUTPUT_RUNCODE_TIME: 'output_runcode_time',
+      HOOK_SUBMISSION: 'hook_submission'
     }
   },
   DEFAULT_AVATAR: {
     URL: 'https://res.cloudinary.com/de6k85koo/image/upload/v1668132408/20889797_1_ic6el0.jpg'
+  },
+  SUBMISSION_STATUS: {
+    PENDING: 'pending',
+    WA: 'Wrong Answer',
+    TLE: 'Time Limited Execeeded',
+    RTE: 'Runtime error',
+    CE: 'Compile error',
+    AC: 'Accepted'
   }
-};
+}
