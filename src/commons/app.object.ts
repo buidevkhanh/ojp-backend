@@ -7,7 +7,8 @@ export const AppObject = {
       CATEGORIES: 'category',
       UPLOADS: 'upload',
       TESTCASES: 'testcase',
-      SUBMISSIONS: 'submission'
+      SUBMISSIONS: 'submission',
+      CONTESTS: 'contest'
     },
   },
   PROBLEM_STATUS: {

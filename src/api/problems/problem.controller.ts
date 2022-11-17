@@ -14,10 +14,13 @@ async function createProblem(req: Request, res: Response, next: NextFunction) {
 
 async function getAllProblem(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page, pageSize, sort, status } = req.query;
+    const { page, pageSize, sort, status, name } = req.query;
     const conditions = {};
     if (status) {
       Object.assign(conditions, { status: { $eq: status } });
+    }
+    if( name) {
+      Object.assign(conditions, { problemName: { $regex: name, $options: 'i'}});
     }
     const result = await problemService.listByAdmin({
       conditions,

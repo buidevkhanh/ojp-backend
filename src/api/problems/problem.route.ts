@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import { adminRole, bypassLogin, loginRequire } from '../../libs/middlewares/validate.mdw';
 import { validate } from '../../libs/middlewares/validate.mdw';
 import problemController from './problem.controller';
