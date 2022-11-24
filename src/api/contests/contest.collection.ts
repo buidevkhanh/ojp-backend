@@ -13,6 +13,7 @@ const ContestSchema = new mongoose.Schema(
     visibility: { type: String, enum: ["public", "private"], default: 'public'},
     beginAt: { type: Date, require: true},
     duration: { type: Number, require: true},
+    closeAt: { type: Date, require: true},
     user: { type: [mongoose.Types.ObjectId], ref: AppObject.MONGO.COLLECTION.USERS},
     questions: [ContestQuestion],
     limitedMember: { type: Number, required: false}
