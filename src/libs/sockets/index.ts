@@ -154,6 +154,14 @@ export default function initialSocket(app: Application) {
                 }
             })
         })
+
+        socket.on(AppObject.SOCKET.RESPONSE.JOIN_CONTEST, (data) => {
+            console.log(data);
+        });
+
+        socket.on('close', (data) => {
+            
+        })
     })
 
     return server;

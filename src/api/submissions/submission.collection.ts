@@ -12,6 +12,7 @@ const SubmissionSchema = new mongoose.Schema(
     passPercent: { type: Number, default: 0},
     detail: { type: String, require: false, default: ''},
     status: { type: String, enum: Object.values(AppObject.SUBMISSION_STATUS), default: AppObject.SUBMISSION_STATUS.PENDING},
+    contest: { type: mongoose.Types.ObjectId, require: false}
   },
   {
     timestamps: true,

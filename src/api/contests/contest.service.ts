@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { AppError } from "../../libs/errors/app.error";
+import { ProblemRepository } from "../problems/problem.repository";
 import { UserRepository } from "../users/user.repository";
+import { ContestHistoryRepository } from "./contest-histories/contest-history.repository";
 import { ContestRepository } from "./contest.repository"
 
 async function createContest(contest) {
@@ -115,6 +117,37 @@ async function userRegister(contestId, nameOrEmail) {
     }
     member.push(userFound._id.toString());
     await contestFound.save();
+    await addHistory(userFound._id.toString(), contestFound._id.toString())
+}
+
+async function addHistory(userId, contestId) {
+    await ContestHistoryRepository.createOne({user: userId, contest: contestId, history: []});
+}
+
+async function userGetDetail(contestId, userId) {
+    const userFound  = await UserRepository.findOneByCondition({$or: [{username: userId}, {userEmail: userId}]});
+    const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id, beginAt: {$lte: new Date()}, closeAt: {$gte: new Date()}});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    if(!contestFound) {
+        throw new AppError('Contest not found', 400);
+    }
+    const newContest = contestFound.toObject();
+    delete newContest.user;
+    const newQuestion: any = [];
+    for(let i = 0;  i < newContest.questions.length; i++) {
+        const problem:any = await ProblemRepository.TSchema.findOne({_id: new mongoose.Types.ObjectId(newContest.questions[i].problem)}, {_id: 1, problemName: 1, problemQuestion: 1, expectedInput: 1, expectedOutput: 1, problemCases: 1}).populate({path: 'problemCases', select: ['input', 'output']});
+        const newProblem = problem.toObject();
+        Object.assign(newProblem, {example: newProblem.problemCases[0]});
+        delete newProblem.problemCases;
+        newQuestion.push({
+            problem: newProblem,
+            score: newContest.questions[i].score
+        })
+    }
+    Object.assign(newContest, {questions: newQuestion});
+    return newContest;
 }
 
 export default {
@@ -122,5 +155,7 @@ export default {
     adminList,
     userList,
     userRegister,
-    userListOwn
+    userListOwn,
+    addHistory,
+    userGetDetail
 }

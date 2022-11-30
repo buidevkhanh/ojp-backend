@@ -8,7 +8,8 @@ export const AppObject = {
       UPLOADS: 'upload',
       TESTCASES: 'testcase',
       SUBMISSIONS: 'submission',
-      CONTESTS: 'contest'
+      CONTESTS: 'contest',
+      CONTEST_HISTORIES: "contest_history"
     },
   },
   PROBLEM_STATUS: {
@@ -35,6 +36,11 @@ export const AppObject = {
     EASY: 'easy',
     MEDIUM: 'medium',
   },
+  CONTEST_STATUS: {
+    DONE: 'done',
+    NOT_JOIN: 'not_join',
+    PROCESSING: 'processing'
+  },
   APP_SCOPES: {
     PUBLIC: 'public',
     CLASS: 'class',
@@ -48,7 +54,8 @@ export const AppObject = {
       RESPONSE_RUNCODE: 'response_runcode',
       OUTPUT_RUNCODE: 'ouput_runcode',
       OUTPUT_RUNCODE_TIME: 'output_runcode_time',
-      HOOK_SUBMISSION: 'hook_submission'
+      HOOK_SUBMISSION: 'hook_submission',
+      JOIN_CONTEST: 'join_contest',
     }
   },
   DEFAULT_AVATAR: {

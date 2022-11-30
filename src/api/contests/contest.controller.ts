@@ -53,10 +53,22 @@ async function userListOwn(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function userGetDetail(req: Request, res: Response, next: NextFunction) {
+    try {
+        const {id} = req.params;
+        const result = await contestService.userGetDetail(id, (req as any).payload?.nameOrEmail);
+        res.status(200).json(result);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
+
 export default {
     createContest,
     adminList,
     userList,
     userRegister,
-    userListOwn
+    userListOwn,
+    userGetDetail
 }
