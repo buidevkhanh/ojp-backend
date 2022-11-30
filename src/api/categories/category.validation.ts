@@ -13,8 +13,8 @@ export const updateCategory = joi.object({
     .regex(/^[0-9a-f]{24}$/i)
     .required()
     .messages({ 'string.base.partern': 'Invalid Id format' }),
-  categoryName: joi.string().optional(),
-  categoryLogo: joi.string().optional().messages({
+  categoryName: joi.string().optional().allow(null),
+  categoryLogo: joi.string().optional().allow(null).messages({
     'string.empty': 'logo url must not be empty',
   }),
 });
