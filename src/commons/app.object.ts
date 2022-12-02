@@ -49,6 +49,7 @@ export const AppObject = {
     ACTIONS: {
       ACTION_SUBMIT_PROBLEM: 'submit_problem',
       ACTION_RUNCODE: 'runcode',
+      SUBMIT_CONTEST: 'submit_contest'
     },
     RESPONSE: {
       RESPONSE_RUNCODE: 'response_runcode',

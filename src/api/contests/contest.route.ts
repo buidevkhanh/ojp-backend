@@ -16,5 +16,7 @@ _router.post('/contest/register/:id', [loginRequire, studentRole, contestControl
 
 _router.get('/contest/:id', [loginRequire, studentRole, contestController.userGetDetail]);
 
+_router.get('/contest/:id/history', [loginRequire, studentRole, contestController.userGetContestHistory]);
+
 export const name = 'problems';
 export default _router;

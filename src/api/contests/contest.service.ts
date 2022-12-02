@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
+import { AppObject } from "../../commons/app.object";
+import jwt from "../../commons/jwt";
 import { AppError } from "../../libs/errors/app.error";
 import { ProblemRepository } from "../problems/problem.repository";
 import { UserRepository } from "../users/user.repository";
@@ -124,6 +126,66 @@ async function addHistory(userId, contestId) {
     await ContestHistoryRepository.createOne({user: userId, contest: contestId, history: []});
 }
 
+async function userJoinContest(userToken, contestId) {
+    const { nameOrEmail } = jwt.verifyToken(userToken);
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        return;
+    }
+    await ContestHistoryRepository.TSchema.updateOne({user: userFound._id, contest: new Types.ObjectId(contestId)}, { $set: { status: AppObject.CONTEST_STATUS.PROCESSING}});
+}
+
+async function userSubmit(userToken, contestId, submission) {
+    const { nameOrEmail } = jwt.verifyToken(userToken);
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        return;
+    }
+    const history = await ContestHistoryRepository.findOneByCondition({user: userFound._id, contest: new Types.ObjectId(contestId)});
+    history.history.unshift(submission);
+    await history.save();
+}
+
+async function userGetContestHistory(nameOrEmail, contestId) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const history = await ContestHistoryRepository.TSchema.findOne({user: userFound._id, contest: new Types.ObjectId(contestId)}).populate({
+        path: 'history'
+    });
+    return history;
+}
+
+async function checkUserContest(userToken, contestId) {
+    if(!userToken) return false;
+    const { nameOrEmail } = jwt.verifyToken(userToken);
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        return false;
+    }
+    const history = await ContestHistoryRepository.findOneByCondition({user: userFound._id, contest: new Types.ObjectId(contestId)});
+    if(!history || !(history.status === AppObject.CONTEST_STATUS.PROCESSING)) {
+        return false;
+    }
+    return true;
+}
+
+async function userFinishContest(userToken, contestId) {
+    if(!userToken) return false;
+    const { nameOrEmail } = jwt.verifyToken(userToken);
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        return;
+    }
+    const history = await ContestHistoryRepository.findOneByCondition({user: userFound._id, contest: new Types.ObjectId(contestId), status: {$ne: [AppObject.CONTEST_STATUS.NOT_JOIN, AppObject.CONTEST_STATUS.DONE]}});
+    if(!history) {
+        return;
+    }
+    history.status = AppObject.CONTEST_STATUS.DONE;
+    await history.save();
+}
+
 async function userGetDetail(contestId, userId) {
     const userFound  = await UserRepository.findOneByCondition({$or: [{username: userId}, {userEmail: userId}]});
     const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id, beginAt: {$lte: new Date()}, closeAt: {$gte: new Date()}});
@@ -157,5 +219,10 @@ export default {
     userRegister,
     userListOwn,
     addHistory,
-    userGetDetail
+    userGetDetail,
+    userJoinContest,
+    userSubmit,
+    checkUserContest,
+    userGetContestHistory,
+    userFinishContest
 }

@@ -42,6 +42,15 @@ async function userRegister(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function userGetContestHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+        const result = await contestService.userGetContestHistory((req as any)?.payload?.nameOrEmail, req.params.id);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function userListOwn(req: Request, res: Response, next: NextFunction) {
     try {
         const { time } = req.query;
@@ -70,5 +79,6 @@ export default {
     userList,
     userRegister,
     userListOwn,
-    userGetDetail
+    userGetDetail,
+    userGetContestHistory
 }

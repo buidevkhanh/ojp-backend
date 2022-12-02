@@ -36,7 +36,9 @@ async function updateSubmission(submissionId, { memory, executeTime, passPercent
 async function listAll(paginate, author) {
     const params = {
         paginate,
-        conditions: {},
+        conditions: {
+            contest: {$eq: null}
+        },
         populate: [{
             path: 'problem',
             select: ['problemName','problemCode']
