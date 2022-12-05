@@ -14,6 +14,7 @@ import SubmissionModel from '../../api/submissions/submission.collection';
 import contestService from '../../api/contests/contest.service';
 import jwt from '../../commons/jwt';
 import ContestHistoryModel from '../../api/contests/contest-histories/contest-history.collection';
+import contestController from '../../api/contests/contest.controller';
 
 export default function initialSocket(app: Application) {
     const server = http.createServer(app);
@@ -142,6 +143,7 @@ export default function initialSocket(app: Application) {
 
         client.on(AppObject.SOCKET.ACTIONS.SUBMIT_CONTEST, async (data) => {
             if(!(await contestService.checkUserContest(data.token, data.contest))) {
+                console.log('permission denied');
                 return;
             }
             Object.assign(data, { code: `${data.file}`});

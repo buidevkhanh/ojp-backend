@@ -5,7 +5,9 @@ import { AppError } from "../../libs/errors/app.error";
 import { ProblemRepository } from "../problems/problem.repository";
 import { UserRepository } from "../users/user.repository";
 import { ContestHistoryRepository } from "./contest-histories/contest-history.repository";
-import { ContestRepository } from "./contest.repository"
+import { ContestRepository } from "./contest.repository";
+import * as signale from 'signale';
+import ContestHistoryModel from "./contest-histories/contest-history.collection";
 
 async function createContest(contest) {
     const name = contest.name;
@@ -132,7 +134,7 @@ async function userJoinContest(userToken, contestId) {
     if(!userFound) {
         return;
     }
-    await ContestHistoryRepository.TSchema.updateOne({user: userFound._id, contest: new Types.ObjectId(contestId)}, { $set: { status: AppObject.CONTEST_STATUS.PROCESSING}});
+    await ContestHistoryRepository.TSchema.updateOne({user: userFound._id, contest: new Types.ObjectId(contestId), status: {$eq: AppObject.CONTEST_STATUS.NOT_JOIN}}, { $set: { status: AppObject.CONTEST_STATUS.PROCESSING}});
 }
 
 async function userSubmit(userToken, contestId, submission) {
@@ -171,6 +173,35 @@ async function checkUserContest(userToken, contestId) {
     return true;
 }
 
+async function autoEndContest() {
+    const historyList = await ContestHistoryRepository.TSchema.aggregate([
+        {   
+            $lookup: {
+                from: 'contests',
+                localField: 'contest',
+                foreignField: '_id',
+                as: 'contest'
+            }, 
+        }, {
+            $unwind: {
+                path: '$contest',
+                preserveNullAndEmptyArrays: true
+            }
+        }, {
+            $match: {
+                'status': {$ne: AppObject.CONTEST_STATUS.DONE},
+                'contest.closeAt': {$lt: new Date()}
+            }
+        }
+    ]);
+
+    for(let i = 0; i < historyList.length; i++) {
+        historyList[i].status = AppObject.CONTEST_STATUS.DONE;
+        await ContestHistoryRepository.TSchema.updateOne({_id: historyList[i]}, {$set: {status: AppObject.CONTEST_STATUS.DONE}});
+        signale.complete(`[Cron] contest history ${historyList[i]._id} was done`);
+    }
+}
+
 async function userFinishContest(userToken, contestId) {
     if(!userToken) return false;
     const { nameOrEmail } = jwt.verifyToken(userToken);
@@ -188,7 +219,7 @@ async function userFinishContest(userToken, contestId) {
 
 async function userGetDetail(contestId, userId) {
     const userFound  = await UserRepository.findOneByCondition({$or: [{username: userId}, {userEmail: userId}]});
-    const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id, beginAt: {$lte: new Date()}, closeAt: {$gte: new Date()}});
+    const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id});
     if(!userFound) {
         throw new AppError('User not found', 400);
     }
@@ -224,5 +255,6 @@ export default {
     userSubmit,
     checkUserContest,
     userGetContestHistory,
-    userFinishContest
+    userFinishContest,
+    autoEndContest
 }

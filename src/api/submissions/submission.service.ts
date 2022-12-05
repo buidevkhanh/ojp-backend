@@ -3,7 +3,6 @@ import userService from "../users/user.service";
 import { SubmissionRepository } from "./submission.repository"
 import  jwtService  from '../../commons/jwt';
 import mongoose from "mongoose";
-import { UserRepository } from "../users/user.repository";
 
 async function createSubmission(submissionInfo) {
     if(!submissionInfo.token) {
@@ -76,5 +75,5 @@ export default {
     updateSubmission,
     listAll,
     detail,
-    removeSubmit
+    removeSubmit,
 }
