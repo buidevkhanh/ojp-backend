@@ -3,6 +3,9 @@ import userService from "../users/user.service";
 import { SubmissionRepository } from "./submission.repository"
 import  jwtService  from '../../commons/jwt';
 import mongoose from "mongoose";
+import { AppObject } from "../../commons/app.object";
+import { UserRepository } from "../users/user.repository";
+import { ProblemRepository } from "../problems/problem.repository";
 
 async function createSubmission(submissionInfo) {
     if(!submissionInfo.token) {
@@ -24,12 +27,25 @@ async function updateSubmission(submissionId, { memory, executeTime, passPercent
     if(!existSubmit) {
         throw new AppError(`SubmissionNotFound`, 400);
     }
+    const userFound: any = await UserRepository.TSchema.findOne({_id: existSubmit.user});
+    const problemFound: any = await ProblemRepository.TSchema.findOne({_id: existSubmit.problem})
     if(memory) existSubmit.memory = memory;
     if(executeTime) existSubmit.executeTime = executeTime;
     if(passPercent) existSubmit.passPercent = passPercent;
     if(detail) existSubmit.detail = detail;
     if(status) existSubmit.status = status;
+    if( status !== AppObject.SUBMISSION_STATUS.PENDING) {
+        userFound.practiceTime = userFound.practiceTime + 1;
+    }
+    if(status === AppObject.SUBMISSION_STATUS.AC) {
+        const isDone = await SubmissionRepository.TSchema.findOne({problem: existSubmit.problem, user: existSubmit.user, status: AppObject.SUBMISSION_STATUS.AC});
+        if(!isDone) {
+            userFound.passProblem = userFound.passProblem + 1;
+            userFound.score = userFound.score + problemFound.score;
+        }
+    }
     await existSubmit.save();
+    await userFound.save();
 }
 
 async function listAll(paginate, author) {

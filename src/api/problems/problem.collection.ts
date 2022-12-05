@@ -27,6 +27,10 @@ const ProblemModelSchema = new mongoose.Schema(
       enum: Object.values(AppObject.PROBLEM_STATUS),
       default: AppObject.PROBLEM_STATUS.PENDING,
     },
+    score: {
+      type: Number,
+      default: 1
+    }
   },
   {
     timestamps: true,

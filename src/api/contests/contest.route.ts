@@ -18,5 +18,7 @@ _router.get('/contest/:id', [loginRequire, studentRole, contestController.userGe
 
 _router.get('/contest/:id/history', [loginRequire, studentRole, contestController.userGetContestHistory]);
 
-export const name = 'problems';
+_router.get('/contest/:id/score', [loginRequire, studentRole, contestController.getScore]);
+
+export const name = 'contests';
 export default _router;

@@ -129,6 +129,19 @@ async function resendCode(nameOrEmail: string) {
   );
 }
 
+async function getTopTen() {
+    const list = await UserRepository.TSchema.find({status: AppObject.ACCOUNT_STATUS.VERIFIED}).sort({"score": -1}).limit(10);
+    const newList = list.map((item: any) => {
+      return {
+        name: item.displayName,
+        score: item.score,
+        practiceTime: item.practiceTime,
+        passProblem: item.passProblem
+      }
+    })
+    return newList;
+}
+
 export default {
   verifyAccount,
   checkUserIsExist,
@@ -136,5 +149,6 @@ export default {
   findUser,
   activeUser,
   resendCode,
-  getUserInfor
+  getUserInfor,
+  getTopTen
 };

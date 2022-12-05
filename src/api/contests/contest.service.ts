@@ -7,6 +7,7 @@ import { UserRepository } from "../users/user.repository";
 import { ContestHistoryRepository } from "./contest-histories/contest-history.repository";
 import { ContestRepository } from "./contest.repository";
 import * as signale from 'signale';
+import format from 'format-duration';
 import ContestHistoryModel from "./contest-histories/contest-history.collection";
 
 async function createContest(contest) {
@@ -209,7 +210,7 @@ async function userFinishContest(userToken, contestId) {
     if(!userFound) {
         return;
     }
-    const history = await ContestHistoryRepository.findOneByCondition({user: userFound._id, contest: new Types.ObjectId(contestId), status: {$ne: [AppObject.CONTEST_STATUS.NOT_JOIN, AppObject.CONTEST_STATUS.DONE]}});
+    const history = await ContestHistoryRepository.findOneByCondition({user: userFound._id, contest: new Types.ObjectId(contestId), status: {$nin: [AppObject.CONTEST_STATUS.NOT_JOIN, AppObject.CONTEST_STATUS.DONE]}});
     if(!history) {
         return;
     }
@@ -243,6 +244,33 @@ async function userGetDetail(contestId, userId) {
     return newContest;
 }
 
+async function userGetScore(contestId, userId) {
+    const userFound  = await UserRepository.findOneByCondition({$or: [{username: userId}, {userEmail: userId}]});
+    const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id});
+    let score = 0;
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    if(!contestFound) {
+        throw new AppError('Contest not found', 400);
+    }
+    const history: any = await ContestHistoryRepository.TSchema.findOne({user: userFound._id, contest: new Types.ObjectId(contestId), status: AppObject.CONTEST_STATUS.DONE}).populate({path: 'history', select: ['problem', 'status']});
+    if(!history) {
+        throw new AppError('History not found', 400);
+    }
+    for(let i = 0;  i < contestFound.questions.length; i++) {
+        const isCorrect = history.history.findIndex((item) => {
+            return (item.problem.toString() === contestFound.questions[i].problem.toString() && item.status === AppObject.SUBMISSION_STATUS.AC)
+        });
+        if(isCorrect !== -1) score += Number(contestFound.questions[i].score);
+    }
+    const timeSpend = history.updatedAt - contestFound.beginAt;
+    return {
+        score,
+        time: format(timeSpend)
+    }
+}
+
 export default {
     createContest,
     adminList,
@@ -256,5 +284,6 @@ export default {
     checkUserContest,
     userGetContestHistory,
     userFinishContest,
-    autoEndContest
+    autoEndContest,
+    userGetScore
 }

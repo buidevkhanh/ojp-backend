@@ -34,8 +34,18 @@ async function getUserInfor(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function getTopTen(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await userSerivce.getTopTen();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   activeUser,
   resendCode,
-  getUserInfor
+  getUserInfor,
+  getTopTen
 };

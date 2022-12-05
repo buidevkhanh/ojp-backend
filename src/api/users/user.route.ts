@@ -20,5 +20,7 @@ _router.get('/user', [
   userController.getUserInfor
 ])
 
+_router.get('/user/ranking', userController.getTopTen)
+
 export const name = 'users';
 export default _router;

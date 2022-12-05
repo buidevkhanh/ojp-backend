@@ -32,6 +32,9 @@ const UserModelSchema = new mongoose.Schema(
       token: { type: String, required: false },
       expires: { type: Date, require: false },
     },
+    score: { type: Number, default: 0},
+    practiceTime: { type: Number, default: 0},
+    passProblem: { type: Number, default: 0}
   },
   { timestamps: true },
 );

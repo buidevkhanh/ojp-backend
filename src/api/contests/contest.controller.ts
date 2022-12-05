@@ -73,6 +73,16 @@ async function userGetDetail(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function getScore(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { id } = req.params;
+        const result = await contestService.userGetScore(id, (req as any).payload?.nameOrEmail);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     createContest,
     adminList,
@@ -80,5 +90,6 @@ export default {
     userRegister,
     userListOwn,
     userGetDetail,
-    userGetContestHistory
+    userGetContestHistory,
+    getScore
 }

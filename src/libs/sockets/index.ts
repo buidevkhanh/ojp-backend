@@ -252,6 +252,10 @@ export default function initialSocket(app: Application) {
                 })
                 }
             })
+        });
+
+        client.on('finish', (data) => {
+            contestService.userFinishContest(data.token, data.contest);
         })
 
         client.on(AppObject.SOCKET.ACTIONS.ACTION_RUNCODE, (data) => {
