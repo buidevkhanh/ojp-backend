@@ -5,16 +5,14 @@ import { randomUUID } from 'crypto';
 import { TestcaseRepository } from './testcases/testcase.repository';
 import TestcaseModel from './testcases/testcase.collection';
 import { AppObject } from '../../commons/app.object';
-import { exist } from 'joi';
-import mongoose, { mongo } from 'mongoose';
-import { isAwaitExpression, ListFormat } from 'typescript';
-import ProblemModel from './problem.collection';
-import { prependOnceListener } from 'process';
-import { UserRepository } from '../users/user.repository';
 import userService from '../users/user.service';
 import { SubmissionRepository } from '../submissions/submission.repository';
 
 async function createProblem(problemInfo) {
+  problemInfo.score = 1;
+  if(problemInfo.status === AppObject.PROBLEM_LEVEL.MEDIUM) {
+    Object.assign(problemInfo, { score: 5})
+  }
   const existCategory = await CategoryRepository.TSchema.findById(
     problemInfo?.problemCategory,
   );
@@ -107,6 +105,13 @@ async function updateTestcase(
 }
 
 async function updateProblem(problemId, problemInfo) {
+  if(problemInfo.level) {
+    if(problemInfo.level === AppObject.PROBLEM_LEVEL.MEDIUM) {
+      Object.assign(problemInfo, { score: 5});
+    } else {
+      Object.assign(problemInfo, { score: 1});
+    }
+  }
   const existProblem = await ProblemRepository.TSchema.findById(problemId);
   if (!existProblem) {
     throw new AppError(`ProblemNotFound`, 400);
