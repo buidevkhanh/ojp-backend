@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { Collection } from "mongoose";
 import commentService from "./comment.service";
 
 async function createComment(req: Request, res: Response, next: NextFunction) {
@@ -75,6 +76,36 @@ async function removeReply(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function createReaction(req: Request, res: Response, next: NextFunction) {
+    try {
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        await commentService.createReaction(req.body.reactionType, req.body.target, nameOrEmail);
+        res.status(200).json({ok: true});
+    } catch (error) {
+        next(error);    
+    }
+}
+
+async function updateReaction(req: Request, res: Response, next: NextFunction) {
+    try {
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        await commentService.changeReaction(nameOrEmail, req.body.target, req.body.reactionType);
+        res.status(200).json({ok: true});
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function getOwn(req: Request, res: Response, next: NextFunction) {
+    try {
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        const result = await commentService.getOwnReaction(nameOrEmail, req.params.id);
+        res.status(200).json({data: result});
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     createComment,
     updateComment,
@@ -82,5 +113,8 @@ export default {
     removeComment,
     createReply,
     updateReply,
-    removeReply
+    removeReply,
+    createReaction,
+    updateReaction,
+    getOwn
 }

@@ -1,7 +1,7 @@
 import mongoose, { mongo } from "mongoose";
 import { AppError } from "../../libs/errors/app.error";
 import { ProblemRepository } from "../problems/problem.repository";
-import { ReactionRepository } from "../reactions/reaction.repository";
+import { ReactionRepository } from "./reactions/reaction.repository";
 import { UserRepository } from "../users/user.repository"
 import { CommentRepository } from "./comment.repository";
 import { ReplyRepository } from "./replies/reply.repository";
@@ -106,6 +106,48 @@ async function removeReply(replyId, nameOrEmail) {
     await ReplyRepository.TSchema.deleteOne({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
 }
 
+async function createReaction(reactionType, targetId, nameOrEmail) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const [commentFound, replyFound, reactionFound] = await Promise.all([
+        CommentRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(targetId)}),
+        ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(targetId)}),
+        ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound})
+    ]);
+    if(reactionFound) {
+        throw new AppError(`Already reaction before`, 400);
+    }
+    if(!commentFound && !replyFound) {
+        throw new AppError(`Target not found`, 400);
+    }
+    await ReactionRepository.createOne({user: userFound._id.toString(), target: targetId, reactionType});
+}
+
+async function getOwnReaction(nameOrEmail, targetId) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const reactionFound = await ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound});
+    return reactionFound;
+}
+
+async function changeReaction(nameOrEmail, targetId, reactionType) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const reactionFound = await ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound});
+    if(reactionFound.reactionType === reactionType) {
+        await ReactionRepository.TSchema.deleteOne({target: new mongoose.Types.ObjectId(targetId), user: userFound})
+    } else {
+        reactionFound.reactionType = reactionType;
+        await reactionFound.save();
+    }
+}
+
 export default {
     createComment,
     updateComment,
@@ -114,4 +156,7 @@ export default {
     replyComment,
     removeReply,
     updateReply,
+    createReaction,
+    getOwnReaction,
+    changeReaction
 }

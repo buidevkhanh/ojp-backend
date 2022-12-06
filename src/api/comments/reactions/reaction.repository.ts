@@ -1,4 +1,4 @@
-import { MongooseRepository } from '../../libs/databases/mongoose.repository';
+import { MongooseRepository } from '../../../libs/databases/mongoose.repository';
 import ReactionModel from './reaction.collection';
 
 class ReactionORM extends MongooseRepository<typeof ReactionModel> {

@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { AppObject } from '../../commons/app.object';
+import { AppObject } from '../../../commons/app.object';
 
 const ReplyModelSchema = new mongoose.Schema(
   {
