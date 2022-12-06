@@ -9,7 +9,10 @@ export const AppObject = {
       TESTCASES: 'testcase',
       SUBMISSIONS: 'submission',
       CONTESTS: 'contest',
-      CONTEST_HISTORIES: "contest_history"
+      CONTEST_HISTORIES: "contest_history",
+      COMMENTS: "comment",
+      REPLIES: "reply",
+      REACTIONS: "reaction"
     },
   },
   PROBLEM_STATUS: {
