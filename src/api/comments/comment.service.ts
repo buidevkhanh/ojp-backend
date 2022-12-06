@@ -4,6 +4,7 @@ import { ProblemRepository } from "../problems/problem.repository";
 import { ReactionRepository } from "../reactions/reaction.repository";
 import { UserRepository } from "../users/user.repository"
 import { CommentRepository } from "./comment.repository";
+import { ReplyRepository } from "./replies/reply.repository";
 
 async function createComment(nameOrEmail, problemId, content ) {
     if(!content.trim()) {
@@ -54,19 +55,63 @@ async function getComment(problemId, page) {
         const item = comments[i];
         const agreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "agreement"});
         const disagreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "disagreement"});
+        const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1}).sort({createdAt: 1}).populate({path: 'user', select: 'displayName'});
         newComments.push({
             ...item.toObject(),
             agreement,
-            disagreement
+            disagreement,
+            replies
         });
     };
 
     return newComments;
 }
 
+async function replyComment(commentId, content, nameOrEmail) {
+    const [commentFound, userFound] = await Promise.all([
+        CommentRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(commentId)}),
+        UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]})
+    ]);
+    if(!commentFound) {
+        throw new AppError('Comment not found', 400);
+    }
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    await ReplyRepository.createOne({user: userFound._id.toString(), comment: commentId, content});
+}
+
+async function updateReply(replyId, nameOrEmail, content) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const replyFound = await ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
+    if(!replyFound) {
+        throw new AppError('Reply not found', 400);
+    }
+    replyFound.content = content;
+    await replyFound.save();
+}
+
+async function removeReply(replyId, nameOrEmail) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    if(!userFound) {
+        throw new AppError('User not found', 400);
+    }
+    const replyFound = await ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
+    if(!replyFound) {
+        throw new AppError('Reply not found', 400);
+    }
+    await ReplyRepository.TSchema.deleteOne({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
+}
+
 export default {
     createComment,
     updateComment,
     removeComment,
-    getComment
+    getComment,
+    replyComment,
+    removeReply,
+    updateReply,
 }

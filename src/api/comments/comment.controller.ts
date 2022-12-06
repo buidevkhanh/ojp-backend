@@ -43,9 +43,44 @@ async function removeComment(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function createReply(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { content, commentId } = req.body;
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        await commentService.replyComment(commentId, content, nameOrEmail);
+        res.status(200).json({ok: true});
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function updateReply(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { replyId, content} = req.body;
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        await commentService.updateReply(replyId, nameOrEmail, content);
+        res.status(200).json({ok: true});
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function removeReply(req: Request, res: Response, next: NextFunction) {
+    try {
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        await commentService.removeReply(req.params.id, nameOrEmail);
+        res.status(200).json({ok: true});
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     createComment,
     updateComment,
     getComment,
-    removeComment
+    removeComment,
+    createReply,
+    updateReply,
+    removeReply
 }

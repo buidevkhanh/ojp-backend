@@ -12,5 +12,11 @@ _router.get('/comment/:id', [commentController.getComment]);
 
 _router.delete('/comment/:id', [loginRequire, studentRole, commentController.removeComment]);
 
+_router.post('/comment/reply', [loginRequire, studentRole, commentController.createReply]);
+
+_router.patch('/comment/reply', [loginRequire, studentRole, commentController.updateReply]);
+
+_router.delete('/comment/reply/:id', [loginRequire, studentRole, commentController.removeReply]);
+
 export const name = 'comment';
 export default _router;
