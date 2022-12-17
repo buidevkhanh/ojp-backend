@@ -20,7 +20,11 @@ _router.get('/user', [
   userController.getUserInfor
 ])
 
-_router.get('/user/ranking', userController.getTopTen)
+_router.patch('/user', [loginRequire, userController.userUpdateInfo]);
+
+_router.get('/user/ranking', userController.getTopTen);
+
+_router.get('/user/ranking/me', [loginRequire, userController.userGetRanking]);
 
 export const name = 'users';
 export default _router;

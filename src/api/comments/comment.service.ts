@@ -49,18 +49,25 @@ async function removeComment(commentId, nameOrEmail){
 }
 
 async function getComment(problemId, page) {
-    const comments = await CommentRepository.TSchema.find({problem: new mongoose.Types.ObjectId(problemId)}).populate([{path: 'user', select: 'displayName'}]).sort({createdAt: -1}).limit(10).skip((page - 1)*10);
+    const comments = await CommentRepository.TSchema.find({problem: new mongoose.Types.ObjectId(problemId)}).populate([{path: 'user', select: 'displayName avatar'}]).sort({createdAt: -1}).limit(10).skip((page - 1)*10);
     const newComments: any[]= [];
     for(let i = 0; i < comments.length; i++) {
         const item = comments[i];
         const agreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "agreement"});
         const disagreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "disagreement"});
-        const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1}).sort({createdAt: 1}).populate({path: 'user', select: 'displayName'});
+        const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1, updatedAt: 1}).sort({createdAt: -1}).populate({path: 'user', select: 'displayName avatar'});
+        const newReplies: any = [];
+        for(let i = 0; i < replies.length; i++) {
+            const rp = replies[i];
+            const agreement = await ReactionRepository.TSchema.count({target: rp._id, reactionType: "agreement"});
+            const disagreement = await ReactionRepository.TSchema.count({target: rp._id, reactionType: "disagreement"});
+            newReplies.push({...rp.toObject(), agreement, disagreement});
+        }
         newComments.push({
             ...item.toObject(),
             agreement,
             disagreement,
-            replies
+            replies: newReplies
         });
     };
 
@@ -116,13 +123,13 @@ async function createReaction(reactionType, targetId, nameOrEmail) {
         ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(targetId)}),
         ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound})
     ]);
-    if(reactionFound) {
-        throw new AppError(`Already reaction before`, 400);
-    }
     if(!commentFound && !replyFound) {
         throw new AppError(`Target not found`, 400);
     }
-    await ReactionRepository.createOne({user: userFound._id.toString(), target: targetId, reactionType});
+    if(reactionFound) {
+        await ReactionRepository.TSchema.deleteOne({_id: reactionFound._id});
+    }
+    else await ReactionRepository.createOne({user: userFound._id.toString(), target: targetId, reactionType});
 }
 
 async function getOwnReaction(nameOrEmail, targetId) {
@@ -148,6 +155,31 @@ async function changeReaction(nameOrEmail, targetId, reactionType) {
     }
 }
 
+export async function getReaction(nameOrEmail, problemId) {
+    const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+    const comments = await CommentRepository.TSchema.find({problem: new mongoose.Types.ObjectId(problemId)}).populate([{path: 'user', select: 'displayName avatar'}]).sort({createdAt: -1});
+    const listTargetId: any = [];
+    for(let i = 0; i < comments.length; i++) {
+        const item = comments[i];
+        listTargetId.push(comments[i]._id);
+        const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1, updatedAt: 1}).sort({createdAt: -1}).populate({path: 'user', select: 'displayName avatar'});
+        for(let i = 0; i < replies.length; i++) {
+           listTargetId.push(replies[i]._id);
+        }
+    };
+
+    const hasReaction = await ReactionRepository.TSchema.find({target: {$in: listTargetId}, user: userFound._id });
+
+    const newHasReaction: any = hasReaction.map((item: any) => {
+        return {
+            target: item.target,
+            type: item.reactionType
+        }
+    })
+
+    return newHasReaction;
+}
+
 export default {
     createComment,
     updateComment,
@@ -158,5 +190,6 @@ export default {
     updateReply,
     createReaction,
     getOwnReaction,
-    changeReaction
+    changeReaction,
+    getReaction
 }

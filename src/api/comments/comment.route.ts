@@ -22,7 +22,9 @@ _router.post('/comment/reaction', [loginRequire, studentRole, commentController.
 
 _router.patch('/comment/reaction', [loginRequire, studentRole, commentController.updateReaction]);
 
-_router.get('/comment/reaction/:id', [loginRequire, studentRole, commentController.getOwn])
+_router.get('/comment/reaction/:id', [loginRequire, studentRole, commentController.getOwn]);
+
+_router.get('/comment/reaction/problem/:id', [loginRequire, studentRole, commentController.getReaction]);
 
 export const name = 'comments';
 export default _router;

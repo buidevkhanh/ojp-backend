@@ -1,4 +1,5 @@
 import { NextFunction, Request, response, Response } from 'express';
+import userService from './user.service';
 import userSerivce from './user.service';
 
 async function activeUser(req: Request, res: Response, next: NextFunction) {
@@ -43,9 +44,29 @@ async function getTopTen(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function userUpdateInfo(req: Request, res: Response, next: NextFunction) {
+  try {
+    await userSerivce.userUpdateProfile(req.body, (req as any).payload.nameOrEmail);
+    res.status(200).json({ok: true});
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function userGetRanking(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await userService.userGetRanking((req as any).payload.nameOrEmail);
+    res.status(200).json({data: result});
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   activeUser,
   resendCode,
   getUserInfor,
-  getTopTen
+  getTopTen,
+  userUpdateInfo,
+  userGetRanking
 };

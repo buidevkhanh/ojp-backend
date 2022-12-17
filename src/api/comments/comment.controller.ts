@@ -79,7 +79,7 @@ async function removeReply(req: Request, res: Response, next: NextFunction) {
 async function createReaction(req: Request, res: Response, next: NextFunction) {
     try {
         const nameOrEmail = (req as any).payload.nameOrEmail;
-        await commentService.createReaction(req.body.reactionType, req.body.target, nameOrEmail);
+        await commentService.createReaction(req.body.reactionType, req.body.targetId, nameOrEmail);
         res.status(200).json({ok: true});
     } catch (error) {
         next(error);    
@@ -106,6 +106,16 @@ async function getOwn(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+async function getReaction(req: Request, res: Response, next: NextFunction) {
+    try {
+        const nameOrEmail = (req as any).payload.nameOrEmail;
+        const result = await commentService.getReaction(nameOrEmail, req.params.id);
+        res.status(200).json({data: result});
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     createComment,
     updateComment,
@@ -116,5 +126,6 @@ export default {
     removeReply,
     createReaction,
     updateReaction,
-    getOwn
+    getOwn,
+    getReaction
 }

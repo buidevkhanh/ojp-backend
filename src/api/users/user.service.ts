@@ -35,7 +35,10 @@ async function getUserInfor(nameOrEmail: string) {
   organization: existUser.organization || null,
   avatar: existUser.avatar || AppObject.DEFAULT_AVATAR.URL,
   createdAt: existUser.createdAt,
-  updatedAt: existUser.updatedAt
+  updatedAt: existUser.updatedAt,
+  score: existUser.score,
+  practiceTime: existUser.practiceTime || 0,
+  passProblem: existUser.passProblem || 0
 }
 }
 
@@ -142,6 +145,44 @@ async function getTopTen() {
     return newList;
 }
 
+async function userUpdateProfile(profile, nameOrEmail) {
+  const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+  if(!userFound) {
+    throw new AppError('User not found', 400);
+  }
+  for(let key of Object.keys(profile)) {
+    if(key === 'userEmail') {
+      const userExist = await UserRepository.findOneByCondition({_id: {$ne: userFound._id}, userEmail: profile.userEmail});
+      if(userExist) {
+        throw new AppError('Email already exist', 400);
+      }
+    }
+    if(key === 'displayName') {
+      const userExist = await UserRepository.findOneByCondition({_id: {$ne: userFound._id}, displayName: profile.displayName});
+      if(userExist) {
+        throw new AppError('Name already exist', 400);
+      }
+    }
+    if(profile[key])
+      userFound[key] = profile[key];
+  }
+  await userFound.save();
+
+}
+
+async function userGetRanking(nameOrEmail) {
+  const allUser = await UserRepository.TSchema.find({status: AppObject.ACCOUNT_STATUS.VERIFIED}).sort({score: -1});
+  const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
+  if(!userFound) {
+    throw new AppError('User not found', 400);
+  }
+  const index = allUser.findIndex((item) => {
+    return item._id.toString() === userFound._id.toString();
+  })
+  
+  return index+1;
+}
+
 export default {
   verifyAccount,
   checkUserIsExist,
@@ -150,5 +191,7 @@ export default {
   activeUser,
   resendCode,
   getUserInfor,
-  getTopTen
+  getTopTen,
+  userUpdateProfile,
+  userGetRanking
 };
