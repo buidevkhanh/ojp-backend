@@ -59,5 +59,7 @@ _router.get('/problem', [bypassLogin, problemController.getActiveProblem]);
 
 _router.get('/problem/detail', [problemController.getProblemDetail]);
 
+_router.get('/problem/statistic', [problemController.statistic]);
+
 export const name = 'problems';
 export default _router;

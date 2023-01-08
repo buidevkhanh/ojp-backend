@@ -49,24 +49,29 @@ async function removeComment(commentId, nameOrEmail){
 }
 
 async function getComment(problemId, page) {
-    const comments = await CommentRepository.TSchema.find({problem: new mongoose.Types.ObjectId(problemId)}).populate([{path: 'user', select: 'displayName avatar'}]).sort({createdAt: -1}).limit(10).skip((page - 1)*10);
+    const comments = await CommentRepository.TSchema.find({problem: new mongoose.Types.ObjectId(problemId)})
+    .populate([{path: 'user', select: 'displayName avatar'}])
+    .sort({createdAt: -1});
     const newComments: any[]= [];
     for(let i = 0; i < comments.length; i++) {
         const item = comments[i];
-        const agreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "agreement"});
-        const disagreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "disagreement"});
-        const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1, updatedAt: 1}).sort({createdAt: -1}).populate({path: 'user', select: 'displayName avatar'});
+        const [agreement, replies] = await Promise.all([
+            ReactionRepository.TSchema.count({target: item._id, reactionType: "agreement"}),
+            ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1, updatedAt: 1})
+            .sort({createdAt: -1})
+            .populate({path: 'user', select: 'displayName avatar'})
+        ])
+        //const agreement = await ReactionRepository.TSchema.count({target: item._id, reactionType: "agreement"});
+        //const replies = await ReplyRepository.TSchema.find({comment: item._id},{user: 1, content: 1, createdAt: 1, updatedAt: 1}).sort({createdAt: -1}).populate({path: 'user', select: 'displayName avatar'});
         const newReplies: any = [];
         for(let i = 0; i < replies.length; i++) {
             const rp = replies[i];
             const agreement = await ReactionRepository.TSchema.count({target: rp._id, reactionType: "agreement"});
-            const disagreement = await ReactionRepository.TSchema.count({target: rp._id, reactionType: "disagreement"});
-            newReplies.push({...rp.toObject(), agreement, disagreement});
+            newReplies.push({...rp.toObject(), agreement});
         }
         newComments.push({
             ...item.toObject(),
             agreement,
-            disagreement,
             replies: newReplies
         });
     };

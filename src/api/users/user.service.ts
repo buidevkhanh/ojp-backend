@@ -4,6 +4,14 @@ import { UserRepository } from './user.repository';
 import { AppError } from '../../libs/errors/app.error';
 import { AppObject } from '../../commons/app.object';
 import { sendEmail } from '../../libs/utils/email.util';
+import { ProblemRepository } from '../problems/problem.repository';
+import { ContestRepository } from '../contests/contest.repository';
+import { SubmissionRepository } from '../submissions/submission.repository';
+import { CommentRepository } from '../comments/comment.repository';
+import { ReplyRepository } from '../comments/replies/reply.repository';
+import { deflateSync } from 'zlib';
+import e from 'express';
+import { ReactionRepository } from '../comments/reactions/reaction.repository';
 
 async function verifyAccount(params: {
   nameOrEmail: string;
@@ -133,7 +141,7 @@ async function resendCode(nameOrEmail: string) {
 }
 
 async function getTopTen() {
-    const list = await UserRepository.TSchema.find({status: AppObject.ACCOUNT_STATUS.VERIFIED}).sort({"score": -1}).limit(10);
+    const list = await UserRepository.TSchema.find({status: AppObject.ACCOUNT_STATUS.VERIFIED}).sort({"score": -1}).limit(50);
     const newList = list.map((item: any) => {
       return {
         name: item.displayName,
@@ -183,6 +191,66 @@ async function userGetRanking(nameOrEmail) {
   return index+1;
 }
 
+async function getAdminInfo(userOrEmail: string) {
+  const adminExist = await UserRepository.TSchema.findOne({username: userOrEmail, userRole: 'admin', status: {$ne: 'deleted'}},{username: 1, displayName: 1, userEmail: 1, avatar: 1});
+  return adminExist;
+}
+
+async function adminStatistic() {
+  const [userStats, problemStats, SubmitStats, contestStats] = await Promise.all([
+    UserRepository.TSchema.aggregate([{$group: {_id: '$userRole', count: {$sum: 1} }}]),
+    ProblemRepository.TSchema.aggregate([{$group: {_id: '$problemLevel', count: {$sum: 1}}}]),
+    SubmissionRepository.TSchema.aggregate([{$group: {_id: '$status', count: {$sum: 1}}}]),
+    ContestRepository.TSchema.count({})
+  ])
+  return {
+    user: userStats,
+    problem: problemStats,
+    submission: SubmitStats,
+    contest: contestStats
+  }
+}
+
+async function autoInsert() {
+  // for(let i = 1000; i <= 1150 ; i++) {
+  //   const userPass = '000000000';
+  //   const username = 'user' + i;
+  //   const displayName = 'user' + Number(new Date());
+  //   const userEmail = 'user' + i + "@gmail.com";
+  //   await UserRepository.createOne({ username, userPass, userEmail, displayName, status: 'verified'});
+  // }
+  // const userList = await UserRepository.TSchema.find({status: 'verified'});
+  // const commentList = await CommentRepository.TSchema.find({});
+  // const replyList = await ReplyRepository.TSchema.find({});
+  // replyList.forEach(async(comment) => {
+  //   for(let i = 20; i < 40; i++) {
+  //     const user: any = userList[i];
+  //     if(Number(new Date())%2 !== 0) {
+  //       continue;
+  //     } 
+  //     await ReactionRepository.createOne({
+  //       user: user._id.toString(),
+  //       target: comment._id.toString(),
+  //       reactionType: 'agreement'
+  //     })
+  //   }
+  // })
+  const listProblem = await ProblemRepository.TSchema.find({});
+  const userList = await UserRepository.TSchema.find({status: 'verified'});
+  for(let i = 0; i < userList.length; i++) {
+    let passProblem = 0;
+    let score = 0;
+    for(let j = 0; j < listProblem.length; j++) {
+      const correct = await SubmissionRepository.TSchema.count({user: userList[i]._id, problem: listProblem[j]._id, status: 'Accepted'});
+      if(correct > 0) {
+        passProblem += 1;
+        score += +(listProblem[j] as any).score || 1;
+      }
+    }
+    await UserRepository.TSchema.updateOne({_id: userList[i]._id}, {$set: {passProblem, score}});
+  }
+}
+
 export default {
   verifyAccount,
   checkUserIsExist,
@@ -193,5 +261,8 @@ export default {
   getUserInfor,
   getTopTen,
   userUpdateProfile,
-  userGetRanking
+  userGetRanking,
+  getAdminInfo,
+  adminStatistic,
+  autoInsert,
 };

@@ -19,12 +19,12 @@ async function getAllProblem(req: Request, res: Response, next: NextFunction) {
     if (status) {
       Object.assign(conditions, { status: { $eq: status } });
     }
-    if( name) {
+    if( name && name !== 'null') {
       Object.assign(conditions, { problemName: { $regex: name, $options: 'i'}});
     }
     const result = await problemService.listByAdmin({
       conditions,
-      paginate: { page, pageSize, sort },
+      paginate: { page: page || 1, pageSize: pageSize || -1, sort },
     });
     res.status(200).json(result);
   } catch (error) {
@@ -55,7 +55,6 @@ async function addTestcase(req: Request, res: Response, next: NextFunction) {
     await problemService.addTestcase(req.params.id, req.body.testcases);
     res.status(200).json({ ok: true });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }
@@ -74,7 +73,6 @@ async function updateProblem(req: Request, res: Response, next: NextFunction) {
     await problemService.updateProblem(req.params.id, req.body);
     res.status(200).json({ ok: true });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }
@@ -129,7 +127,6 @@ async function getActiveProblem(
     }, (req as any).payload?.nameOrEmail);
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }
@@ -147,6 +144,15 @@ async function getProblemDetail(
   }
 }
 
+async function statistic(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await problemService.statistic();
+    res.status(200).json({result});
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   createProblem,
   getAllProblem,
@@ -158,4 +164,5 @@ export default {
   getDetail,
   getActiveProblem,
   getProblemDetail,
+  statistic
 };

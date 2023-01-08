@@ -29,7 +29,6 @@ async function getAllActive(req, res, next) {
     });
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }
@@ -47,7 +46,6 @@ async function getAll(req, res, next) {
     });
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }
@@ -75,7 +73,6 @@ async function switchStatus(req, res, next) {
     await categoryService.changeStatus(req.params.id);
     res.status(200).json({ ok: true });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 }

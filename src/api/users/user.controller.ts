@@ -62,11 +62,41 @@ async function userGetRanking(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function getAdminInfo(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await userService.getAdminInfo((req as any)?.payload?.userOrEmail);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function adminStatistic(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await userService.adminStatistic();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function autoInsert(req: Request, res: Response, next: NextFunction) {
+  try {
+    await userSerivce.autoInsert();
+    res.status(200).json({success: true});
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   activeUser,
   resendCode,
   getUserInfor,
   getTopTen,
   userUpdateInfo,
-  userGetRanking
+  userGetRanking,
+  getAdminInfo,
+  adminStatistic,
+  autoInsert
 };

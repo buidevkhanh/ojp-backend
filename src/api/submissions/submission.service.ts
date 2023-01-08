@@ -66,7 +66,15 @@ async function listAll(paginate, author) {
         const existUser = await userService.findUser({$or: [{username: author},{userEmail: author}]});
         Object.assign(params.conditions, { user: existUser._id});
     }
-    return SubmissionRepository.getAllWithPaginate(params);
+    const result = await SubmissionRepository.getAllWithPaginate(params);
+    const data = result.data;  
+    const newData = data.map((item: any) => {
+        item = item.toObject();
+        delete item.userCode;
+        return item;
+    });
+    Object.assign(result, { data: newData});
+    return result;
 }
 
 async function detail(submissionId, user) {

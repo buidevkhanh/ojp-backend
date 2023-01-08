@@ -16,7 +16,6 @@ async function adminList(req: Request, res: Response, next: NextFunction) {
         const result = await contestService.adminList({page, pageSize});
         res.status(200).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
@@ -28,7 +27,6 @@ async function userList(req: Request, res:Response, next: NextFunction) {
         const result = await contestService.userList({page, pageSize});
         res.status(200).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
@@ -57,7 +55,6 @@ async function userListOwn(req: Request, res: Response, next: NextFunction) {
         const result = await contestService.userListOwn((req as any).payload.nameOrEmail, time);
         res.status(200).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
@@ -68,7 +65,6 @@ async function userGetDetail(req: Request, res: Response, next: NextFunction) {
         const result = await contestService.userGetDetail(id, (req as any).payload?.nameOrEmail);
         res.status(200).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }

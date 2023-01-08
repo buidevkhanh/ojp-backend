@@ -1,9 +1,15 @@
 import express, { NextFunction, Request, Response } from 'express';
 import userController from './user.controller';
-import { loginRequire, validate } from '../../libs/middlewares/validate.mdw';
+import { adminRole, loginRequire, validate } from '../../libs/middlewares/validate.mdw';
 import { activeUser, resendCode } from './user.validation';
 
 const _router = express.Router();
+
+_router.get('/insert-data/user', [userController.autoInsert])
+
+_router.get('/admin/info', [loginRequire, adminRole, userController.getAdminInfo]);
+
+_router.get('/admin/statistic', [loginRequire, adminRole, userController.adminStatistic]);
 
 _router.post('/users/active', [
   validate(activeUser),

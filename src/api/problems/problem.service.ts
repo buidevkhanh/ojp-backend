@@ -7,11 +7,13 @@ import TestcaseModel from './testcases/testcase.collection';
 import { AppObject } from '../../commons/app.object';
 import userService from '../users/user.service';
 import { SubmissionRepository } from '../submissions/submission.repository';
+import { UserRepository } from '../users/user.repository';
+import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 
 async function createProblem(problemInfo) {
   problemInfo.score = 1;
   if(problemInfo.status === AppObject.PROBLEM_LEVEL.MEDIUM) {
-    Object.assign(problemInfo, { score: 5})
+    Object.assign(problemInfo, { score: 3})
   }
   const existCategory = await CategoryRepository.TSchema.findById(
     problemInfo?.problemCategory,
@@ -72,7 +74,6 @@ async function deleteTestcase(testcaseIds: string[]) {
     const existProblems: any = await ProblemRepository.TSchema.find({
       problemCases: { $in: testcaseIds },
     });
-    console.log(existProblems);
     for (let i = 0; i < existProblems.length; i++) {
       existProblems[i].problemCases = existProblems[i].problemCases.filter(
         (item) => {
@@ -105,21 +106,33 @@ async function updateTestcase(
 }
 
 async function updateProblem(problemId, problemInfo) {
-  if(problemInfo.level) {
-    if(problemInfo.level === AppObject.PROBLEM_LEVEL.MEDIUM) {
-      Object.assign(problemInfo, { score: 5});
+  let newScore = -1;
+  if(problemInfo.problemLevel) {
+    if(problemInfo.problemLevel === AppObject.PROBLEM_LEVEL.MEDIUM) {
+      Object.assign(problemInfo, { score: 3});
+      newScore = 3;
     } else {
       Object.assign(problemInfo, { score: 1});
+      newScore = 1;
     }
   }
-  const existProblem = await ProblemRepository.TSchema.findById(problemId);
+  const existProblem: any = await ProblemRepository.TSchema.findById(problemId);
   if (!existProblem) {
     throw new AppError(`ProblemNotFound`, 400);
   }
+  const oldScore = existProblem.score;
+  if( newScore !== -1) {
+    const insc = newScore - oldScore;
+    const userDone: any[] = await SubmissionRepository.TSchema.find({contest: null, status: AppObject.SUBMISSION_STATUS.AC, problem: existProblem._id}, {user: 1, score: 1});
+    userDone.forEach(async (user) => {
+      const userFound: any = await UserRepository.TSchema.findOne({_id: user.user});
+      userFound.score = userFound.score + insc;
+      userFound.save();
+    })
+  }
   for (const key in problemInfo) {
-    if (Object.keys(existProblem.toObject()).includes(key)) {
+      
       existProblem[key] = problemInfo[key];
-    }
   }
   await existProblem.save();
 }
@@ -199,6 +212,20 @@ async function userGetDetail(code) {
   return Object.assign(result.toObject(), { example, problemCases: 'Not public'});
 }
 
+async function statistic() {
+  const [users, problems, submissions] = await Promise.all([
+    UserRepository.TSchema.count({status: AppObject.ACCOUNT_STATUS.VERIFIED}),
+    ProblemRepository.TSchema.count({status: AppObject.COMMON_STATUS.ACTIVE}),
+    SubmissionRepository.TSchema.count({})
+  ]);
+
+  return {
+    totalUser: users,
+    totalProblem: problems,
+    totalSubmission: submissions
+  }
+}
+
 export default {
   createProblem,
   listByAdmin,
@@ -210,4 +237,5 @@ export default {
   addTestcase,
   getActiveProblem,
   userGetDetail,
+  statistic
 };

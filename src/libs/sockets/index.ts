@@ -12,9 +12,7 @@ import { cppChangeContent, javaChangeContent } from '../utils/code.util';
 import submissionService from '../../api/submissions/submission.service';
 import SubmissionModel from '../../api/submissions/submission.collection';
 import contestService from '../../api/contests/contest.service';
-import jwt from '../../commons/jwt';
 import ContestHistoryModel from '../../api/contests/contest-histories/contest-history.collection';
-import contestController from '../../api/contests/contest.controller';
 
 export default function initialSocket(app: Application) {
     const server = http.createServer(app);
@@ -45,8 +43,9 @@ export default function initialSocket(app: Application) {
             switch(data.language) {
                 case 'java': {
                     tempFilename = 'Main' + Number(new Date());
+                    data.code =  `import java.util.*;\n${data.code}`;
                     data.code = data.code.replace(new RegExp('package[ ]{1,}[^ ]{1,}[ ]{0,};'), "");
-                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
+                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9_-]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
                     tempFilename += ".java";
                     break;
                 }
@@ -93,7 +92,7 @@ export default function initialSocket(app: Application) {
                                     submitResult.memory = runner.memory;
                                     break;
                                 }
-                                else if(testcase[i].output != runner.output) {
+                                else if(testcase[i].output.replace(/[ ]{0,}\r\n/g,'\n').trim() != runner.output.replace(/[ ]{0,}\r\n/g,'\n').trim()) {
                                     submitResult.status = AppObject.SUBMISSION_STATUS.WA;
                                     submitResult.time = maxExecuteTime;
                                     submitResult.memory = runner.memory;
@@ -114,22 +113,23 @@ export default function initialSocket(app: Application) {
                             detail: submitResult.detail, 
                             status: submitResult.status
                         });
+                        }).finally(async() => {
+                            try {
+                                switch(data.language) {
+                                    case "cpp": {
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename));
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".cpp",".exe")));
+                                        break;
+                                    }
+                                    case "java": {
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename));
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".java",".class")));
+                                        break;
+                                    }
+                                }   
+                            } catch {};
                         })
                    }
-                    try {
-                        switch(data.language) {
-                            case "cpp": {
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename));
-                                await fs.unlinkSync(compiled?.detail);
-                                break;
-                            }
-                            case "java": {
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename));
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".java",".class")));
-                                break;
-                            }
-                        }   
-                    } catch {};
                 })
                 }
             })
@@ -143,7 +143,6 @@ export default function initialSocket(app: Application) {
 
         client.on(AppObject.SOCKET.ACTIONS.SUBMIT_CONTEST, async (data) => {
             if(!(await contestService.checkUserContest(data.token, data.contest))) {
-                console.log('permission denied');
                 return;
             }
             Object.assign(data, { code: `${data.file}`});
@@ -165,9 +164,9 @@ export default function initialSocket(app: Application) {
                 case 'java': {
                     tempFilename = 'Main' + Number(new Date());
                     data.code = data.code.replace(new RegExp('package[ ]{1,}[^ ]{1,}[ ]{0,};'), "");
-                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
+                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9_-]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
                     tempFilename += ".java";
-                    break;
+                    data.code = javaChangeContent(data.code);
                 }
                 case 'cpp': {
                     data.code = cppChangeContent(data.code);
@@ -212,7 +211,7 @@ export default function initialSocket(app: Application) {
                                     submitResult.memory = runner.memory;
                                     break;
                                 }
-                                else if(testcase[i].output != runner.output) {
+                                else if(testcase[i].output.replace(/[ ]{0,}\r\n/g,'\n').trim() != runner.output.replace(/[ ]{0,}\r\n/g,'\n').trim()) {
                                     submitResult.status = AppObject.SUBMISSION_STATUS.WA;
                                     submitResult.time = maxExecuteTime;
                                     submitResult.memory = runner.memory;
@@ -233,22 +232,23 @@ export default function initialSocket(app: Application) {
                             detail: submitResult.detail, 
                             status: submitResult.status
                         });
+                        }).finally(async() => {
+                            try {
+                                switch(data.language) {
+                                    case "cpp": {
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename));
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".cpp",".exe")));
+                                        break;
+                                    }
+                                    case "java": {
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename));
+                                        await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".java",".class")));
+                                        break;
+                                    }
+                                }   
+                            } catch {};
                         })
                    }
-                    try {
-                        switch(data.language) {
-                            case "cpp": {
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename));
-                                await fs.unlinkSync(compiled?.detail);
-                                break;
-                            }
-                            case "java": {
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename));
-                                await fs.unlinkSync(path.join(tempFolder, tempFilename.replace(".java",".class")));
-                                break;
-                            }
-                        }   
-                    } catch {};
                 })
                 }
             })
@@ -265,7 +265,7 @@ export default function initialSocket(app: Application) {
                 case 'java': {
                     tempFilename = 'Main' + Number(new Date());
                     data.code = data.code.replace(new RegExp('package[ ]{1,}[^ ]{1,}[ ]{0,};'), "");
-                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
+                    data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9_-]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
                     tempFilename += ".java";
                     data.code = javaChangeContent(data.code);
                     break;
