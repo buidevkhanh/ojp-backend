@@ -19,7 +19,7 @@ async function createProblem(problemInfo) {
     problemInfo?.problemCategory,
   );
   if (!existCategory) {
-    throw new AppError('CategoryNotFound', 400);
+    throw new AppError('Danh mục không đúng', 400);
   }
 
   try {
@@ -48,13 +48,13 @@ async function listByAdmin(params) {
 async function changeProblem(problemId) {
   const existProblem: any = await ProblemRepository.TSchema.findById(problemId);
   if (!existProblem) {
-    throw new AppError(`ProblemNotFound`, 400);
+    throw new AppError(`Bài toán không được tìm thấy`, 400);
   }
   if (
     existProblem.status !== AppObject.PROBLEM_STATUS.ACTIVE &&
     existProblem.status !== AppObject.PROBLEM_STATUS.INACTIVE
   ) {
-    throw new AppError(`NotAcceptedProblem`, 400);
+    throw new AppError(`Không chấp nhận bài toán`, 400);
   }
   if (existProblem.status === AppObject.PROBLEM_STATUS.ACTIVE) {
     existProblem.status = AppObject.PROBLEM_STATUS.INACTIVE;
@@ -98,7 +98,7 @@ async function updateTestcase(
     testcaseId,
   );
   if (!existTestcase) {
-    throw new AppError(`TestcaseNotFound`, 400);
+    throw new AppError(`Testcase không được tìm thấy`, 400);
   }
   if (testcaseInfo.input) existTestcase.input = testcaseInfo.input;
   if (testcaseInfo.output) existTestcase.output = testcaseInfo.output;
@@ -118,7 +118,7 @@ async function updateProblem(problemId, problemInfo) {
   }
   const existProblem: any = await ProblemRepository.TSchema.findById(problemId);
   if (!existProblem) {
-    throw new AppError(`ProblemNotFound`, 400);
+    throw new AppError(`Không tìm thấy bài toán`, 400);
   }
   const oldScore = existProblem.score;
   if( newScore !== -1) {
@@ -144,7 +144,7 @@ async function getDetail(problemId) {
     path: 'problemCases',
   });
   if (!existProblem) {
-    throw new AppError(`ProblemNotFound`, 400);
+    throw new AppError(`Không tìm thấy bài toán`, 400);
   }
   return existProblem;
 }
@@ -152,7 +152,7 @@ async function getDetail(problemId) {
 async function addTestcase(problemId, testcaseInfo) {
   const existProblem: any = await ProblemRepository.TSchema.findById(problemId);
   if (!existProblem) {
-    throw new AppError(`ProblemNotFound`, 400);
+    throw new AppError(`Không tìm thấy bài toán`, 400);
   }
   const testcaseIds = await Promise.all(
     testcaseInfo.map((item) => {
@@ -177,6 +177,7 @@ async function getActiveProblem(params, user?) {
     projections: {
       "problemName": 1,
       "problemCode": 1,
+      "score": 1,
       "problemLevel": 1
     }
   });
@@ -206,7 +207,7 @@ async function userGetDetail(code) {
   }).populate([{ path: 'problemCategory' }, { path: 'problemCases' }]);
 
   if (!result) {
-    throw new AppError(`problemNotFound`, 400);
+    throw new AppError(`Không tìm thấy bài toán`, 400);
   }
   const example = result.problemCases[0];
   return Object.assign(result.toObject(), { example, problemCases: 'Not public'});

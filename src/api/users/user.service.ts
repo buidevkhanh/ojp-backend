@@ -28,10 +28,10 @@ async function verifyAccount(params: {
 async function getUserInfor(nameOrEmail: string) {
   const existUser: any = await UserRepository.TSchema.findOne({ $or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
   if(!existUser) {
-    throw new AppError(`UserNotExist`, 400);
+    throw new AppError(`Người dùng không tồn tại`, 400);
   }
   if(existUser.status !== AppObject.ACCOUNT_STATUS.VERIFIED) {
-    throw new AppError(`UserIs${existUser.status}`, 400);
+    throw new AppError(`Người dùng bị ${existUser.status}`, 400);
   } 
   return   {
   username: existUser.username,
@@ -89,17 +89,17 @@ async function activeUser(params: { token: string; nameOrEmail: string }) {
     ],
   });
   if (!existUser) {
-    throw new AppError(`InvalidUser`, 400);
+    throw new AppError(`Người dùng không đúng`, 400);
   }
   if (existUser.activateCode.token === params.token) {
     if (existUser.activateCode.expires > new Date()) {
       existUser.status = AppObject.ACCOUNT_STATUS.VERIFIED;
       await existUser.save();
     } else {
-      throw new AppError(`TokenExpired`, 400);
+      throw new AppError(`Token hết hạn`, 400);
     }
   } else {
-    throw new AppError(`InavlidToken`, 400);
+    throw new AppError(`Token không đúng`, 400);
   }
 }
 
@@ -156,19 +156,19 @@ async function getTopTen() {
 async function userUpdateProfile(profile, nameOrEmail) {
   const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
   if(!userFound) {
-    throw new AppError('User not found', 400);
+    throw new AppError('Không tìm thấy người dùng', 400);
   }
   for(let key of Object.keys(profile)) {
     if(key === 'userEmail') {
       const userExist = await UserRepository.findOneByCondition({_id: {$ne: userFound._id}, userEmail: profile.userEmail});
       if(userExist) {
-        throw new AppError('Email already exist', 400);
+        throw new AppError('Email đã tồn tại', 400);
       }
     }
     if(key === 'displayName') {
       const userExist = await UserRepository.findOneByCondition({_id: {$ne: userFound._id}, displayName: profile.displayName});
       if(userExist) {
-        throw new AppError('Name already exist', 400);
+        throw new AppError('Tên hiển thị đã tồn tại', 400);
       }
     }
     if(profile[key])
@@ -182,7 +182,7 @@ async function userGetRanking(nameOrEmail) {
   const allUser = await UserRepository.TSchema.find({status: AppObject.ACCOUNT_STATUS.VERIFIED}).sort({score: -1});
   const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
   if(!userFound) {
-    throw new AppError('User not found', 400);
+    throw new AppError('Không tìm thấy người dùng', 400);
   }
   const index = allUser.findIndex((item) => {
     return item._id.toString() === userFound._id.toString();

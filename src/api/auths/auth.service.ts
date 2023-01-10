@@ -13,10 +13,10 @@ async function authSignin(params: {
 }): Promise<{ accessToken: string; refreshToken: string }> {
   const existUser = await userService.verifyAccount(params);
   if (!existUser) {
-    throw new AppError(`Invalid account or password`, 400);
+    throw new AppError(`Tên đăng nhập hoặc mật khẩu không đúng`, 400);
   }
   if (existUser.status !== AppObject.ACCOUNT_STATUS.VERIFIED) {
-    throw new AppError(`Account was ${existUser.status}`, 400);
+    throw new AppError(`Tài khoản bị ${existUser.status}`, 400);
   }
   const accessToken = jwt.signToken(
     { nameOrEmail: existUser.username, role: existUser.userRole },
@@ -38,7 +38,7 @@ async function authSignup(params: IUserSignUp) {
     email: params.userEmail,
   });
   if (isExist) {
-    throw new AppError(`Account already exist`, 400);
+    throw new AppError(`Tài khoản đã tồn tại`, 400);
   }
   const activateCode = (
     Math.ceil(+new Date() * (Math.random() * 100)) + ''

@@ -8,17 +8,17 @@ import { ReplyRepository } from "./replies/reply.repository";
 
 async function createComment(nameOrEmail, problemId, content ) {
     if(!content.trim()) {
-        throw new AppError('Content invalid', 400);
+        throw new AppError('Nội dung không đúng định dạng', 400);
     }
     const [userFound, problemFound] = await Promise.all([
         UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]}),
         ProblemRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(problemId)})
     ]);
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     if(!problemFound) {
-        throw new AppError('Problem not found', 400);
+        throw new AppError('Không tìm thấy tài khoản', 400);
     }
     await CommentRepository.createOne({user: userFound._id.toString(), problem: problemFound._id.toString(), content});
 }
@@ -26,11 +26,11 @@ async function createComment(nameOrEmail, problemId, content ) {
 async function updateComment(nameOrEmail,commentId, content) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Người dùng không tồn tại', 400);
     }
     const commentFound = await CommentRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(commentId), user: userFound._id});
     if(!commentFound) {
-        throw new AppError('Comment not found', 400);
+        throw new AppError('Bình luận không tồn tại', 400);
     }
     commentFound.content = content;
     await commentFound.save();
@@ -39,11 +39,11 @@ async function updateComment(nameOrEmail,commentId, content) {
 async function removeComment(commentId, nameOrEmail){
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Người dùng không tồn tại', 400);
     }
     const commentFound = await CommentRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(commentId), user: userFound._id});
     if(!commentFound) {
-        throw new AppError('Comment not found', 400);
+        throw new AppError('Bình luận không tồn tại', 400);
     }
     await CommentRepository.TSchema.deleteOne({_id: new mongoose.Types.ObjectId(commentId), user: userFound._id});
 }
@@ -85,10 +85,10 @@ async function replyComment(commentId, content, nameOrEmail) {
         UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]})
     ]);
     if(!commentFound) {
-        throw new AppError('Comment not found', 400);
+        throw new AppError('Bình luận không tồn tại', 400);
     }
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Người dùng không tồn tại', 400);
     }
     await ReplyRepository.createOne({user: userFound._id.toString(), comment: commentId, content});
 }
@@ -96,11 +96,11 @@ async function replyComment(commentId, content, nameOrEmail) {
 async function updateReply(replyId, nameOrEmail, content) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Người dùng không tồn tại', 400);
     }
     const replyFound = await ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
     if(!replyFound) {
-        throw new AppError('Reply not found', 400);
+        throw new AppError('Không tìm thấy', 400);
     }
     replyFound.content = content;
     await replyFound.save();
@@ -109,11 +109,11 @@ async function updateReply(replyId, nameOrEmail, content) {
 async function removeReply(replyId, nameOrEmail) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const replyFound = await ReplyRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
     if(!replyFound) {
-        throw new AppError('Reply not found', 400);
+        throw new AppError('Không tìm thấy trả lời', 400);
     }
     await ReplyRepository.TSchema.deleteOne({_id: new mongoose.Types.ObjectId(replyId), user: userFound._id});
 }
@@ -121,7 +121,7 @@ async function removeReply(replyId, nameOrEmail) {
 async function createReaction(reactionType, targetId, nameOrEmail) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const [commentFound, replyFound, reactionFound] = await Promise.all([
         CommentRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(targetId)}),
@@ -129,7 +129,7 @@ async function createReaction(reactionType, targetId, nameOrEmail) {
         ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound})
     ]);
     if(!commentFound && !replyFound) {
-        throw new AppError(`Target not found`, 400);
+        throw new AppError(`Mục tiêu không chính xác`, 400);
     }
     if(reactionFound) {
         await ReactionRepository.TSchema.deleteOne({_id: reactionFound._id});
@@ -140,7 +140,7 @@ async function createReaction(reactionType, targetId, nameOrEmail) {
 async function getOwnReaction(nameOrEmail, targetId) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const reactionFound = await ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound});
     return reactionFound;
@@ -149,7 +149,7 @@ async function getOwnReaction(nameOrEmail, targetId) {
 async function changeReaction(nameOrEmail, targetId, reactionType) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const reactionFound = await ReactionRepository.findOneByCondition({target: new mongoose.Types.ObjectId(targetId), user: userFound});
     if(reactionFound.reactionType === reactionType) {

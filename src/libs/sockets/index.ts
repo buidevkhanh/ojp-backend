@@ -167,6 +167,7 @@ export default function initialSocket(app: Application) {
                     data.code = data.code.replace(new RegExp('public[ ]{1,}class[ ]{1,}[A-Za-z][A-Za-z0-9_-]{0,}[ ]{0,}{'), `public class ${tempFilename} {`);
                     tempFilename += ".java";
                     data.code = javaChangeContent(data.code);
+                    break;
                 }
                 case 'cpp': {
                     data.code = cppChangeContent(data.code);

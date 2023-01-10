@@ -12,7 +12,7 @@ async function signIn(email: string, password: string) {
   });
 
   if (!existAdmin) {
-    throw new AppError(`PermissionDenied`, 403);
+    throw new AppError(`Không có quyền`, 403);
   }
 
   password = hashInformation(password);
@@ -25,7 +25,7 @@ async function signIn(email: string, password: string) {
       ),
     };
   } else {
-    throw new AppError(`InvalidPassword`, 400);
+    throw new AppError(`Mật khẩu sai`, 400);
   }
 }
 

@@ -9,12 +9,12 @@ import { ProblemRepository } from "../problems/problem.repository";
 
 async function createSubmission(submissionInfo) {
     if(!submissionInfo.token) {
-        throw new AppError(`InvalidToken`, 400);
+        throw new AppError(`Token không chính xác`, 400);
     }
     const nameOrEmail = jwtService.verifyToken(submissionInfo.token as string).nameOrEmail;
     const existUser = await userService.findUser({$or: [{username: nameOrEmail},{userEmail: nameOrEmail}]});
     if(!existUser) {
-        throw new AppError(`UserNotFound`, 400);
+        throw new AppError(`Người dùng không chính xác`, 400);
     } 
     delete submissionInfo.token;
     Object.assign(submissionInfo, { user: existUser._id});
@@ -25,7 +25,7 @@ async function createSubmission(submissionInfo) {
 async function updateSubmission(submissionId, { memory, executeTime, passPercent, detail, status}) {
     const existSubmit:any = await SubmissionRepository.TSchema.findById(submissionId);
     if(!existSubmit) {
-        throw new AppError(`SubmissionNotFound`, 400);
+        throw new AppError(`Lịch sử không chính xác`, 400);
     }
     const userFound: any = await UserRepository.TSchema.findOne({_id: existSubmit.user});
     const problemFound: any = await ProblemRepository.TSchema.findOne({_id: existSubmit.problem})
@@ -81,7 +81,7 @@ async function detail(submissionId, user) {
     const existUser = await userService.findUser({$or: [{username: user},{userEmail: user}]});
     const existSubmit = await SubmissionRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(submissionId), user: existUser._id});
     if(!existSubmit) {
-        throw new AppError(`PermissionDenied`, 400);
+        throw new AppError(`Truy cập bị từ chối`, 400);
     }
     const returnSubmit = existSubmit.toObject();
     if(!returnSubmit.language) {

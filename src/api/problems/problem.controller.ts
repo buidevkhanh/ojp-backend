@@ -20,7 +20,11 @@ async function getAllProblem(req: Request, res: Response, next: NextFunction) {
       Object.assign(conditions, { status: { $eq: status } });
     }
     if( name && name !== 'null') {
-      Object.assign(conditions, { problemName: { $regex: name, $options: 'i'}});
+      if (name) {
+        Object.assign(conditions, {
+          problemName: { $regex: name, $options: 'i' },
+        });
+      }
     }
     const result = await problemService.listByAdmin({
       conditions,

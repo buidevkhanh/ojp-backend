@@ -13,7 +13,7 @@ async function createCategory(categoryInfo: {
     categoryName: { $regex: categoryInfo.categoryName, $options: 'i' },
   });
   if (existCategory) {
-    throw new AppError('CategoryNameIsExist', 400);
+    throw new AppError('Tên danh mục đã tồn tại', 400);
   }
   return CategoryRepository.createOne(categoryInfo);
 }
@@ -28,7 +28,7 @@ async function updateCategory(categoryInfo: {
   });
 
   if (!existCategory) {
-    throw new AppError('CategoryIsNotExist', 400);
+    throw new AppError('Không tìm thấy danh mục', 400);
   }
 
   if (categoryInfo.categoryName) {
@@ -47,14 +47,14 @@ async function deleteCategory(categoryId) {
     _id: new mongoose.Types.ObjectId(categoryId),
   });
   if (!existCategory) {
-    throw new AppError('CategoryNotFound', 400);
+    throw new AppError('Không tìm thấy danh mục', 400);
   }
   //check in used category
   const existProblems = await ProblemRepository.findOneByCondition({
     problemCategory: new mongoose.Types.ObjectId(categoryId),
   });
   if (existProblems) {
-    throw new AppError('CanNotBeRemoveThisCategory', 400);
+    throw new AppError('Không thể xóa danh mục đã có bài toán', 400);
   }
   // delete category
   await CategoryRepository.TSchema.deleteOne({
@@ -69,7 +69,7 @@ async function getAllCategory(params) {
 async function detailById(id) {
   const existCategory = await CategoryRepository.TSchema.findById(id);
   if (!existCategory) {
-    throw new AppError('categoryNotFound', 400);
+    throw new AppError('Không tìm thấy danh mục', 400);
   }
   return existCategory;
 }
@@ -77,7 +77,7 @@ async function detailById(id) {
 async function changeStatus(id) {
   const existCategory: any = await CategoryRepository.TSchema.findById(id);
   if (!existCategory) {
-    throw new AppError('categoryNotFound', 400);
+    throw new AppError('Không tìm thấy danh mục', 400);
   }
   if (existCategory.status === AppObject.COMMON_STATUS.ACTIVE) {
     existCategory.status = AppObject.COMMON_STATUS.INACTIVE;

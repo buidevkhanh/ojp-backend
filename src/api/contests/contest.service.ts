@@ -14,7 +14,7 @@ async function createContest(contest) {
     const name = contest.name;
     const existContest = await ContestRepository.findOneByCondition({name: {$regex: name, $options: 'i'}});
     if(existContest) {
-        throw new AppError('Contest name already exist', 400);
+        throw new AppError('Tên bài thi đã tồn tại', 400);
     }
     const created: any = await ContestRepository.createWithReturn(contest);
     const closeAt = structuredClone(created.beginAt) as Date;
@@ -100,15 +100,15 @@ async function userListOwn(userId, time) {
 async function userRegister(contestId, nameOrEmail) {
     const contestFound: any = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId)});
     if(!contestFound) {
-        throw new AppError('Contest not found', 400);
+        throw new AppError('Bài thi không tìm thấy', 400);
     }
     const userFound: any = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const member = contestFound.user;
     if(typeof contestFound.limitedMember == 'number' && member.length === contestFound.limitedMember) {
-        throw new AppError('Contest is full', 400);
+        throw new AppError('Bài thi đã đủ số người tham gia', 400);
     }
     let isExist = false;
     for(let i = 0; i < member.length; i++) {
@@ -118,7 +118,7 @@ async function userRegister(contestId, nameOrEmail) {
         }
     }
     if(isExist) {
-        throw new AppError('User already register', 400);
+        throw new AppError('Người dùng đã đăng ký trước đó', 400);
     }
     member.push(userFound._id.toString());
     await contestFound.save();
@@ -152,7 +152,7 @@ async function userSubmit(userToken, contestId, submission) {
 async function userGetContestHistory(nameOrEmail, contestId) {
     const userFound = await UserRepository.findOneByCondition({$or: [{username: nameOrEmail}, {userEmail: nameOrEmail}]});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     const history = await ContestHistoryRepository.TSchema.findOne({user: userFound._id, contest: new Types.ObjectId(contestId)}).populate({
         path: 'history'
@@ -222,10 +222,10 @@ async function userGetDetail(contestId, userId) {
     const userFound  = await UserRepository.findOneByCondition({$or: [{username: userId}, {userEmail: userId}]});
     const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id});
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     if(!contestFound) {
-        throw new AppError('Contest not found', 400);
+        throw new AppError('Không tìm thấy bài thi', 400);
     }
     const newContest = contestFound.toObject();
     delete newContest.user;
@@ -249,14 +249,14 @@ async function userGetScore(contestId, userId) {
     const contestFound = await ContestRepository.findOneByCondition({_id: new mongoose.Types.ObjectId(contestId), user: userFound._id});
     let score = 0;
     if(!userFound) {
-        throw new AppError('User not found', 400);
+        throw new AppError('Không tìm thấy người dùng', 400);
     }
     if(!contestFound) {
-        throw new AppError('Contest not found', 400);
+        throw new AppError('Không tìm thấy bài thi', 400);
     }
     const history: any = await ContestHistoryRepository.TSchema.findOne({user: userFound._id, contest: new Types.ObjectId(contestId), status: AppObject.CONTEST_STATUS.DONE}).populate({path: 'history', select: ['problem', 'status']});
     if(!history) {
-        throw new AppError('History not found', 400);
+        throw new AppError('Lịch sử không được tìm thấy', 400);
     }
     for(let i = 0;  i < contestFound.questions.length; i++) {
         const isCorrect = history.history.findIndex((item) => {
